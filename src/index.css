@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fredoka', cursive, system-ui, sans-serif;
+  }
+}
+
+/* Print Specific Rules */
+@media print {
+  @page {
+    margin: 1.2cm;
+    size: portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Force elements marked print:hidden to hide */
+  header,
+  nav,
+  #bingo-wheel-container,
+  #reset-game-btn,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Show printable section only */
+  #printable-sheets-container {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .print-page {
+    page-break-after: always;
+    break-after: page;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 2cm !important;
+  }
+
+  .bingo-print-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 2px solid #334155 !important;
+  }
+}
