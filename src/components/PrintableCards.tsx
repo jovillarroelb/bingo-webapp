@@ -305,7 +305,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
                 }`}
               >
-                2 (Grandes, 5 años)
+                2 (Grandes)
               </button>
               <button
                 onClick={() => setCardsPerPage(4)}

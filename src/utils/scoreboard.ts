@@ -1,6 +1,7 @@
 import { ScoreRecord, PlayerScoreSummary, GameMode } from '../types';
 
-const SCOREBOARD_STORAGE_KEY = 'bingo_familiar_scoreboard_v1';
+const SCOREBOARD_SESSION_STORAGE_KEY = 'bingo_familiar_session_records_v1';
+const SCOREBOARD_GLOBAL_STORAGE_KEY = 'bingo_familiar_global_records_v1';
 
 export const GAME_MODE_LABELS: Record<GameMode, { label: string; short: string; emoji: string; desc: string }> = {
   line_row: {
@@ -23,54 +24,81 @@ export const GAME_MODE_LABELS: Record<GameMode, { label: string; short: string; 
   },
 };
 
-export function getScoreRecords(): ScoreRecord[] {
+// Start or reset a session: each session resets the session records
+export function resetSessionScoreboard(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(SCOREBOARD_SESSION_STORAGE_KEY);
+  } catch (err) {
+    console.warn('Error resetting session scoreboard:', err);
+  }
+}
+
+// Get the current session records
+export function getSessionRecords(): ScoreRecord[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(SCOREBOARD_STORAGE_KEY);
+    const raw = sessionStorage.getItem(SCOREBOARD_SESSION_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.warn('Error reading scoreboard from localStorage:', err);
+    console.warn('Error reading session records:', err);
     return [];
   }
 }
 
+// Save a record in the current session (and mirror to history)
 export function saveScoreRecord(
   record: Omit<ScoreRecord, 'id' | 'timestamp'>
 ): ScoreRecord {
-  const records = getScoreRecords();
+  const currentSessionRecords = getSessionRecords();
+  const cleanPlayerName = record.playerName.trim() || 'Campeón Anónimo';
+
   const newRecord: ScoreRecord = {
     ...record,
+    playerName: cleanPlayerName,
     id: `win-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     timestamp: Date.now(),
   };
 
-  const updated = [newRecord, ...records];
+  const updatedSession = [newRecord, ...currentSessionRecords];
   try {
-    localStorage.setItem(SCOREBOARD_STORAGE_KEY, JSON.stringify(updated));
+    sessionStorage.setItem(SCOREBOARD_SESSION_STORAGE_KEY, JSON.stringify(updatedSession));
   } catch (err) {
-    console.warn('Error saving scoreboard to localStorage:', err);
+    console.warn('Error saving session record:', err);
+  }
+
+  // Also persist to global history in localStorage if desired
+  try {
+    const globalRaw = localStorage.getItem(SCOREBOARD_GLOBAL_STORAGE_KEY);
+    const globalList: ScoreRecord[] = globalRaw ? JSON.parse(globalRaw) : [];
+    localStorage.setItem(
+      SCOREBOARD_GLOBAL_STORAGE_KEY,
+      JSON.stringify([newRecord, ...globalList].slice(0, 100))
+    );
+  } catch {
+    // ignore
   }
 
   return newRecord;
 }
 
-export function deleteScoreRecord(id: string): ScoreRecord[] {
-  const records = getScoreRecords().filter((r) => r.id !== id);
+export function deleteSessionRecord(id: string): ScoreRecord[] {
+  const records = getSessionRecords().filter((r) => r.id !== id);
   try {
-    localStorage.setItem(SCOREBOARD_STORAGE_KEY, JSON.stringify(records));
+    sessionStorage.setItem(SCOREBOARD_SESSION_STORAGE_KEY, JSON.stringify(records));
   } catch (err) {
-    console.warn('Error updating scoreboard in localStorage:', err);
+    console.warn('Error updating session records:', err);
   }
   return records;
 }
 
-export function clearScoreboard(): void {
+export function clearSessionRecords(): void {
   try {
-    localStorage.removeItem(SCOREBOARD_STORAGE_KEY);
+    sessionStorage.removeItem(SCOREBOARD_SESSION_STORAGE_KEY);
   } catch (err) {
-    console.warn('Error clearing scoreboard:', err);
+    console.warn('Error clearing session records:', err);
   }
 }
 

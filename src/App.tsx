@@ -10,6 +10,9 @@ import {
   VolumeX,
   Target,
   Award,
+  BookOpen,
+  LogOut,
+  Keyboard,
 } from 'lucide-react';
 import { DrawnBall, PlayerBingoCard, GameMode, ScoreRecord } from './types';
 import { generateBingoCards } from './utils/bingoData';
@@ -22,10 +25,11 @@ import {
   generateCardsForParticipants,
 } from './utils/participants';
 import {
-  getScoreRecords,
+  getSessionRecords,
   saveScoreRecord,
-  deleteScoreRecord,
-  clearScoreboard,
+  deleteSessionRecord,
+  clearSessionRecords,
+  resetSessionScoreboard,
   GAME_MODE_LABELS,
 } from './utils/scoreboard';
 import { BingoWheel } from './components/BingoWheel';
@@ -34,17 +38,25 @@ import { PrintableCards } from './components/PrintableCards';
 import { DigitalCards } from './components/DigitalCards';
 import { Scoreboard } from './components/Scoreboard';
 import { BingoClaimModal } from './components/BingoClaimModal';
+import { LandingPage } from './components/LandingPage';
+import { InstructionsModal } from './components/InstructionsModal';
+import { Footer } from './components/Footer';
 
 export default function App() {
+  // Session Active state: starts on attractive Landing Page inviting families & apoderados
+  const [sessionActive, setSessionActive] = useState<boolean>(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState<boolean>(false);
+
   const [activeTab, setActiveTab] = useState<'wheel' | 'print' | 'digital' | 'scoreboard'>('wheel');
   const [drawnBalls, setDrawnBalls] = useState<DrawnBall[]>([]);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [activeMode, setActiveMode] = useState<GameMode>('full_card');
   const [isClaimModalOpen, setIsClaimModalOpen] = useState<boolean>(false);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [showExitSessionConfirm, setShowExitSessionConfirm] = useState<boolean>(false);
 
-  // Scoreboard records loaded from localStorage
-  const [records, setRecords] = useState<ScoreRecord[]>(() => getScoreRecords());
+  // Scoreboard records for the active session (each session resets)
+  const [records, setRecords] = useState<ScoreRecord[]>(() => getSessionRecords());
 
   // Participants and cards per participant persisted across sessions
   const [participants, setParticipants] = useState<string[]>(() => getSavedParticipants());
@@ -54,6 +66,20 @@ export default function App() {
   const [cards, setCards] = useState<PlayerBingoCard[]>(() =>
     generateCardsForParticipants(getSavedParticipants(), getSavedCardsPerParticipant())
   );
+
+  // Start a fresh session
+  const handleStartSession = () => {
+    resetSessionScoreboard();
+    setRecords([]);
+    setDrawnBalls([]);
+    setSessionActive(true);
+    setActiveTab('wheel');
+  };
+
+  const handleExitSession = () => {
+    setShowExitSessionConfirm(false);
+    setSessionActive(false);
+  };
 
   const handleUpdateParticipants = (newParticipants: string[]) => {
     setParticipants(newParticipants);
@@ -75,38 +101,92 @@ export default function App() {
     playSound('pop', soundEnabled);
   };
 
-  // Record a verified win into the Scoreboard
+  // Record a verified win into the Session Scoreboard
   const handleRecordWin = (
     playerName: string,
     mode: GameMode,
     ballsCount: number,
     pattern?: string
   ) => {
-    const saved = saveScoreRecord({
+    saveScoreRecord({
       playerName,
       mode,
       ballsDrawnCount: ballsCount,
       winningPattern: pattern,
     });
-    setRecords(getScoreRecords());
+    setRecords(getSessionRecords());
+  };
+
+  // Manually type and register a win directly from the Scoreboard
+  const handleManualAddRecord = (playerName: string, mode: GameMode, ballsCount: number) => {
+    saveScoreRecord({
+      playerName,
+      mode,
+      ballsDrawnCount: ballsCount,
+    });
+    setRecords(getSessionRecords());
   };
 
   const handleClearHistory = () => {
-    clearScoreboard();
+    clearSessionRecords();
     setRecords([]);
   };
 
   const handleDeleteRecord = (id: string) => {
-    const updated = deleteScoreRecord(id);
+    const updated = deleteSessionRecord(id);
     setRecords(updated);
   };
+
+  // Global Keyboard shortcuts: Space for spin, Enter for Cantar Bingo
+  useEffect(() => {
+    if (!sessionActive) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        playSound('pop', soundEnabled);
+        setIsClaimModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sessionActive, soundEnabled]);
+
+  // If session is NOT active, display the Landing Page
+  if (!sessionActive) {
+    return (
+      <>
+        <LandingPage
+          onStartSession={handleStartSession}
+          onOpenInstructions={() => setIsInstructionsOpen(true)}
+          soundEnabled={soundEnabled}
+        />
+        <InstructionsModal
+          isOpen={isInstructionsOpen}
+          onClose={() => setIsInstructionsOpen(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50/70 via-orange-50/30 to-amber-100/40 text-slate-800 pb-16">
       {/* Top Navigation & App Header (Hidden when printing) */}
       <header className="print:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-amber-200/80 shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-          {/* Logo & Kid Friendly Badge */}
+          {/* Logo & Clean Title (No '(para 5 y 7 años)' in title) */}
           <div className="flex items-center gap-2.5">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-md shadow-amber-500/20 text-2xl select-none">
               🦁
@@ -116,29 +196,56 @@ export default function App() {
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-['Fredoka'] leading-none">
                   ¡Bingo Familiar!
                 </h1>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 uppercase tracking-wider">
-                  Para 5 y 7 años
+                <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
+                  Sesión Activa
                 </span>
               </div>
               <p className="text-[11px] font-bold text-slate-500 mt-0.5">
-                Ruleta 3D Three.js, verificación de Bingo con fiesta y cartones imprimibles
+                Ruleta 3D, verificación de Bingo con fiesta y cartones en PDF
               </p>
             </div>
           </div>
 
-          {/* Quick Right Action: Prominent BINGO Claim Button */}
-          <div className="flex items-center gap-2">
+          {/* Action buttons: Instructions, Big ¡Cantar Bingo! button, and Session exit */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Instructions Button */}
+            <button
+              id="header-instructions-btn"
+              onClick={() => {
+                playSound('click', soundEnabled);
+                setIsInstructionsOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-2xl bg-white hover:bg-amber-50 text-slate-700 font-black text-xs shadow-xs border-2 border-amber-300 flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+            >
+              <BookOpen className="w-4 h-4 text-amber-600" />
+              <span>Instrucciones</span>
+            </button>
+
+            {/* Prominent BIG "¡Cantar Bingo!" Button with Enter hint */}
             <button
               id="header-bingo-button"
               onClick={() => {
                 playSound('pop', soundEnabled);
                 setIsClaimModalOpen(true);
               }}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-sm shadow-md shadow-rose-500/30 flex items-center gap-1.5 transition-transform transform hover:scale-105 active:scale-95 cursor-pointer border-b-2 border-rose-700 animate-pulse"
-              title="Cantar y verificar Bingo con fiesta y fuegos artificiales"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-sm sm:text-base shadow-md shadow-rose-500/30 flex items-center gap-2 transition-transform transform hover:scale-105 active:scale-95 cursor-pointer border-b-2 border-rose-700 animate-pulse"
+              title="Cantar Bingo y verificar cartón (tecla Enter)"
             >
-              <Trophy className="w-4 h-4 text-yellow-300" />
-              <span>🎉 ¡CANTAR BINGO!</span>
+              <Trophy className="w-4 h-4 text-yellow-300 animate-bounce" />
+              <span>¡Cantar Bingo!</span>
+              <span className="hidden md:inline-block text-[10px] font-mono bg-black/25 px-1.5 py-0.5 rounded text-rose-100 font-black">
+                Enter ↵
+              </span>
+            </button>
+
+            {/* Exit / New Session Button */}
+            <button
+              id="header-exit-session-btn"
+              onClick={() => setShowExitSessionConfirm(true)}
+              className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              title="Finalizar sesión y volver al inicio"
+            >
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
 
@@ -152,7 +259,7 @@ export default function App() {
               }}
               className={`px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'wheel'
-                  ? 'bg-amber-500 text-white shadow-sm'
+                  ? 'bg-amber-500 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
@@ -168,7 +275,7 @@ export default function App() {
               }}
               className={`px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'scoreboard'
-                  ? 'bg-yellow-500 text-white shadow-sm'
+                  ? 'bg-yellow-500 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
@@ -184,7 +291,7 @@ export default function App() {
               }}
               className={`px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'print'
-                  ? 'bg-rose-500 text-white shadow-sm'
+                  ? 'bg-rose-500 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
@@ -200,7 +307,7 @@ export default function App() {
               }}
               className={`px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'digital'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
               }`}
             >
@@ -231,27 +338,27 @@ export default function App() {
             {/* Master Board of 75 numbers */}
             <MasterBoard drawnBalls={drawnBalls} />
 
-            {/* Quick helper card for parents playing with 5 & 7 year olds */}
+            {/* Helper tips card for families and apoderados */}
             <div className="bg-amber-100/60 border-2 border-amber-300/80 rounded-3xl p-5 text-xs text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <span className="text-2xl mt-0.5">💡</span>
                 <div>
                   <h4 className="font-black text-sm font-['Fredoka'] text-amber-900">
-                    Consejos para jugar con tus hijos de 5 y 7 años
+                    Consejos para jugar en familia y con apoderados
                   </h4>
                   <p className="mt-0.5 text-amber-900/90 leading-relaxed font-semibold">
-                    1. Imprime los cartones en la pestaña <strong>"🖨️ Imprimir Cartones"</strong> y colócalos en la mesa con porotos, botones o tapitas.
+                    1. Imprime los cartones en la pestaña <strong>"🖨️ Imprimir Cartones"</strong> con recorte para tijera y reparte por participante.
                     <br />
-                    2. Puedes elegir jugar por <strong>Fila (↔️)</strong>, <strong>Columna (↕️)</strong> o <strong>Todo el cartón (🏆)</strong> para partidas más rápidas o largas.
+                    2. Gira el bombo presionando la <strong>Barra Espaciadora</strong> y canta Bingo pulsando la tecla <strong>Enter</strong>.
                     <br />
-                    3. Cuando un niño cante ¡BINGO!, pulsa el botón rojo <strong>"🎉 ¡CANTAR BINGO!"</strong> para verificarlo con animación de fiesta y fuegos artificiales.
+                    3. Al cantar Bingo, teclea el nombre del ganador para registrarlo en el podio del <strong>Scoreboard</strong> de la sesión.
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setActiveTab('print')}
-                className="flex-shrink-0 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                className="flex-shrink-0 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Ir a Imprimir Cartones</span>
@@ -260,13 +367,15 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 2: Scoreboard & Historical Record */}
+        {/* TAB 2: Scoreboard & Session Records */}
         {activeTab === 'scoreboard' && (
           <div className="animate-fadeIn">
             <Scoreboard
               records={records}
               onClearHistory={handleClearHistory}
               onDeleteRecord={handleDeleteRecord}
+              onManualAddRecord={handleManualAddRecord}
+              currentBallsCount={drawnBalls.length}
               soundEnabled={soundEnabled}
             />
           </div>
@@ -301,6 +410,9 @@ export default function App() {
         )}
       </main>
 
+      {/* App Footer */}
+      <Footer className="mt-12" />
+
       {/* Hidden printable container rendered when user prints from any screen */}
       <div className="hidden print:block">
         <PrintableCards
@@ -314,6 +426,12 @@ export default function App() {
         />
       </div>
 
+      {/* Instructions Modal */}
+      <InstructionsModal
+        isOpen={isInstructionsOpen}
+        onClose={() => setIsInstructionsOpen(false)}
+      />
+
       {/* Dedicated Bingo Claim & Verification Modal with Fireworks and Fiesta */}
       <BingoClaimModal
         isOpen={isClaimModalOpen}
@@ -326,7 +444,7 @@ export default function App() {
         soundEnabled={soundEnabled}
       />
 
-      {/* Reset Confirmation Dialog */}
+      {/* Reset Ball Confirmation Dialog */}
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-amber-300 shadow-2xl text-center space-y-4">
@@ -335,7 +453,7 @@ export default function App() {
               ¿Reiniciar la partida?
             </h3>
             <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-              Se devolverán todas las bolitas extraídas al bombo 3D para empezar un juego nuevo desde cero.
+              Se devolverán todas las bolitas extraídas al bombo 3D para empezar un nuevo juego desde cero.
             </p>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -347,9 +465,39 @@ export default function App() {
               </button>
               <button
                 onClick={handleResetGame}
-                className="py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-600 font-extrabold text-xs text-white shadow-sm transition-colors cursor-pointer"
+                className="py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-600 font-extrabold text-xs text-white shadow-xs transition-colors cursor-pointer"
               >
                 Sí, reiniciar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exit Session Confirmation Dialog */}
+      {showExitSessionConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-amber-300 shadow-2xl text-center space-y-4">
+            <div className="text-4xl">🏠</div>
+            <h3 className="text-xl font-black text-slate-900 font-['Fredoka']">
+              ¿Volver a la Pantalla Principal?
+            </h3>
+            <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+              Podrás iniciar una nueva sesión cuando quieras. Cada nueva sesión comienza con su propio marcador limpio.
+            </p>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                onClick={() => setShowExitSessionConfirm(false)}
+                className="py-2.5 px-4 rounded-xl border border-slate-300 font-extrabold text-xs text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Seguir Jugando
+              </button>
+              <button
+                onClick={handleExitSession}
+                className="py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 font-extrabold text-xs text-white shadow-xs transition-colors cursor-pointer"
+              >
+                Salir al Inicio
               </button>
             </div>
           </div>

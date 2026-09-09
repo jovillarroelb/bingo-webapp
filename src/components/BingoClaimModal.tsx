@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -8,8 +8,8 @@ import {
   CheckCircle2,
   PartyPopper,
   Crown,
-  ChevronRight,
-  Flame,
+  Keyboard,
+  User,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { PlayerBingoCard, DrawnBall, GameMode } from '../types';
@@ -39,8 +39,19 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
   soundEnabled,
 }) => {
   const [selectedCardId, setSelectedCardId] = useState<string>(cards[0]?.id || '');
+  const [typedPlayerName, setTypedPlayerName] = useState<string>(cards[0]?.playerName || '');
   const [verificationResult, setVerificationResult] = useState<CardCheckResult | null>(null);
   const [hasRecorded, setHasRecorded] = useState<boolean>(false);
+
+  // Sync initial card name when opening
+  useEffect(() => {
+    if (isOpen) {
+      const initial = cards.find((c) => c.id === selectedCardId) || cards[0];
+      if (initial && !typedPlayerName) {
+        setTypedPlayerName(initial.playerName);
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -92,11 +103,13 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
     const result = checkCardStatus(selectedCard, drawnNumbers, activeMode);
     setVerificationResult(result);
 
+    const winnerName = typedPlayerName.trim() || selectedCard.playerName;
+
     if (result.isWin) {
       launchFireworks();
       if (!hasRecorded) {
         onRecordWin(
-          selectedCard.playerName,
+          winnerName,
           activeMode,
           drawnBalls.length,
           result.winningPatternDescription
@@ -135,11 +148,11 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/30 text-3xl mb-2 animate-bounce">
             🎉
           </div>
-          <h3 className="text-2xl font-black text-slate-900 font-['Fredoka']">
-            ¡Alguien gritó BINGO!
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 font-['Fredoka']">
+            ¡Cantar Bingo!
           </h3>
           <p className="text-xs font-semibold text-slate-500 mt-0.5">
-            Selecciona quién cantó y verificaremos su cartón al instante
+            Teclea el nombre de quien cantó Bingo y verificaremos su cartón al instante
           </p>
         </div>
 
@@ -179,46 +192,64 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
           </p>
         </div>
 
-        {/* 2. Player selection */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-            <Crown className="w-4 h-4 text-amber-500" />
-            <span>¿Quién cantó Bingo?:</span>
+        {/* 2. Text Input to TYPE the winner's name directly as requested by user */}
+        <div className="bg-amber-50/70 p-3.5 rounded-2xl border-2 border-amber-300 space-y-2">
+          <label className="text-xs font-black text-slate-900 font-['Fredoka'] flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <User className="w-4 h-4 text-amber-600" />
+              <span>Teclea el nombre de quien cantó Bingo:</span>
+            </span>
+            <span className="text-[10px] text-amber-800 font-bold">Quedará en el Scoreboard</span>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {cards.map((card) => {
-              const isSelected = selectedCard?.id === card.id;
 
-              return (
-                <button
-                  key={card.id}
-                  onClick={() => {
-                    setSelectedCardId(card.id);
-                    setVerificationResult(null);
-                    setHasRecorded(false);
-                    playSound('click', soundEnabled);
-                  }}
-                  className={`p-2 rounded-xl text-left font-extrabold text-xs transition-all cursor-pointer border-2 ${
-                    isSelected
-                      ? 'bg-amber-100 border-amber-400 text-amber-900 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="truncate font-black">{card.playerName}</div>
-                  <div className="text-[10px] font-bold text-slate-400">Cartón #{card.cardIndex}</div>
-                </button>
-              );
-            })}
+          <input
+            type="text"
+            id="claim-player-name-input"
+            value={typedPlayerName}
+            onChange={(e) => setTypedPlayerName(e.target.value)}
+            placeholder="Teclea el nombre aquí (ej: Lucas, Familia Muñoz, Mamá...)"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-white border-2 border-amber-400 font-bold text-slate-900 text-sm focus:outline-hidden focus:border-amber-600 shadow-xs"
+          />
+
+          {/* Quick-select chips from registered cards */}
+          <div className="space-y-1 pt-1">
+            <span className="text-[10px] font-bold text-slate-500">O selecciona rápido de los cartones:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {cards.map((card) => {
+                const isSelected = selectedCard?.id === card.id;
+                return (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCardId(card.id);
+                      setTypedPlayerName(card.playerName);
+                      setVerificationResult(null);
+                      setHasRecorded(false);
+                      playSound('click', soundEnabled);
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-100/50'
+                    }`}
+                  >
+                    {card.playerName} (Cartón #{card.cardIndex})
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* 3. Primary Verify Button */}
         {!verificationResult && (
           <button
+            id="modal-verify-bingo-btn"
             onClick={handleVerify}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-lg shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 transition-transform transform hover:scale-[1.01] active:scale-[0.98] cursor-pointer border-b-4 border-rose-700"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-lg sm:text-xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2.5 transition-transform transform hover:scale-[1.01] active:scale-[0.98] cursor-pointer border-b-4 border-rose-700 animate-pulse"
           >
-            <Sparkles className="w-5 h-5" />
+            <Sparkles className="w-6 h-6" />
             <span>¡VERIFICAR SI ES BINGO!</span>
           </button>
         )}
@@ -240,27 +271,27 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                 <>
                   <div className="flex items-center justify-center gap-2">
                     <Trophy className="w-8 h-8 text-amber-500 animate-bounce" />
-                    <span className="text-2xl font-black font-['Fredoka'] text-emerald-800">
+                    <span className="text-2xl sm:text-3xl font-black font-['Fredoka'] text-emerald-800">
                       ¡¡SÍIII, ES BINGO VÁLIDO!! 🏆
                     </span>
                   </div>
 
-                  <div className="bg-white/80 rounded-xl p-2.5 border border-emerald-300 text-sm font-black text-emerald-900">
-                    👑 ¡Felicidades, {selectedCard.playerName}!
-                    <div className="text-xs font-bold text-emerald-700 mt-0.5">
+                  <div className="bg-white/90 rounded-2xl p-3 border border-emerald-300 text-base font-black text-emerald-900 shadow-xs">
+                    👑 ¡Felicidades, {typedPlayerName.trim() || selectedCard.playerName}!
+                    <div className="text-xs font-bold text-emerald-700 mt-1">
                       {verificationResult.winningPatternDescription} • Logrado con{' '}
-                      {drawnBalls.length} bolas
+                      {drawnBalls.length} bolas cantadas
                     </div>
                   </div>
 
                   <p className="text-xs font-extrabold text-emerald-800 flex items-center justify-center gap-1">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>¡Guardado automáticamente en el Scoreboard Histórico!</span>
+                    <span>¡Registrado en el Scoreboard de la sesión con el nombre tecleado!</span>
                   </p>
 
                   <button
                     onClick={launchFireworks}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs shadow-md flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs shadow-md flex items-center justify-center gap-2 mx-auto cursor-pointer transition-transform hover:scale-105"
                   >
                     <PartyPopper className="w-4 h-4" />
                     <span>¡Lanzar más fuegos artificiales!</span>
@@ -278,7 +309,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                   <p className="text-xs font-semibold text-amber-900 leading-relaxed">
                     Para ganar en la modalidad{' '}
                     <strong>{GAME_MODE_LABELS[activeMode].label}</strong>,{' '}
-                    {selectedCard.playerName} lleva acertadas{' '}
+                    {typedPlayerName.trim() || selectedCard.playerName} lleva acertadas{' '}
                     <strong className="text-slate-900">
                       {verificationResult.totalMarkedCount} de 25 casillas
                     </strong>
@@ -291,7 +322,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
 
                   <button
                     onClick={() => setVerificationResult(null)}
-                    className="px-4 py-1.5 rounded-xl bg-amber-500 text-white font-extrabold text-xs cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs cursor-pointer shadow-xs"
                   >
                     Probar con otro jugador
                   </button>
@@ -301,7 +332,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
               {/* Visual mini-matrix preview */}
               <div className="pt-2 border-t border-slate-200">
                 <div className="text-[10px] font-bold text-slate-500 mb-1">
-                  Revisión visual de casillas de {selectedCard.playerName}:
+                  Revisión visual de casillas de {typedPlayerName.trim() || selectedCard.playerName}:
                 </div>
                 <div className="grid grid-cols-5 gap-1 max-w-[200px] mx-auto">
                   {letters.map((l) => (
@@ -315,7 +346,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                   ))}
 
                   {[0, 1, 2, 3, 4].map((r) =>
-                    letters.map((c, cIdx) => {
+                    letters.map((c) => {
                       const val = selectedCard.grid[c][r];
                       const isFree = val === 'FREE';
                       const isHit = isFree || (typeof val === 'number' && drawnNumbers.includes(val));

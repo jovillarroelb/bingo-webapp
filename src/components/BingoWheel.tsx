@@ -11,6 +11,7 @@ import {
   Clock,
   Target,
   Trophy,
+  Keyboard,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BingoLetter, DrawnBall, GameMode } from '../types';
@@ -96,6 +97,41 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
     }, 1100);
   };
 
+  // Keyboard Shortcuts: Space to spin, Enter to Claim Bingo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Do not trigger hotkeys if user is currently typing in an input or textarea
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Spacebar: Girar y sacar bola
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        if (!isSpinning && remainingCount > 0) {
+          handleDraw();
+        }
+      }
+
+      // Enter: Cantar Bingo
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        playSound('pop', soundEnabled);
+        onOpenBingoClaim();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSpinning, remainingCount, drawnBalls.length, soundEnabled]);
+
   // Auto-draw timer logic
   useEffect(() => {
     if (!autoDraw || remainingCount <= 0) {
@@ -138,10 +174,10 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                     onModeChange(mode);
                     playSound('click', soundEnabled);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-500 text-white shadow-sm scale-[1.02]'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-amber-500 text-white shadow-xs scale-105'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                   title={info.desc}
                 >
@@ -153,7 +189,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
           </div>
         </div>
 
-        {/* Right Action Icons: Sound, Primary BINGO button, Reset */}
+        {/* Right Action Icons: Sound, Reset */}
         <div className="flex items-center gap-2">
           {/* Sound toggle */}
           <button
@@ -171,19 +207,6 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-700" /> : <VolumeX className="w-4 h-4" />}
             <span className="hidden sm:inline">{soundEnabled ? 'Sonidos' : 'Silencio'}</span>
-          </button>
-
-          {/* Prominent BINGO Claim Button */}
-          <button
-            id="claim-bingo-main-btn"
-            onClick={() => {
-              playSound('pop', soundEnabled);
-              onOpenBingoClaim();
-            }}
-            className="px-4 py-2 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-sm shadow-md shadow-rose-500/25 flex items-center gap-1.5 transition-transform transform hover:scale-105 active:scale-95 cursor-pointer border-b-2 border-rose-700 animate-pulse"
-          >
-            <Trophy className="w-4 h-4 text-yellow-300" />
-            <span>¡BINGO!</span>
           </button>
 
           {/* Reset game */}
@@ -222,13 +245,14 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
             />
           </div>
 
-          {/* Primary Spin Button */}
-          <div className="w-full space-y-3 pt-2">
+          {/* ACTION BUTTONS: ¡Girar y sacar bola! (Espacio) AND ¡Cantar Bingo! (Enter) */}
+          <div className="w-full space-y-2.5 pt-2">
+            {/* Primary Spin Button with Space hint */}
             <button
               id="draw-ball-main-btn"
               onClick={handleDraw}
               disabled={isSpinning || remainingCount <= 0}
-              className={`w-full py-3.5 sm:py-4 px-6 rounded-2xl text-white font-extrabold text-lg sm:text-xl shadow-lg transition-all transform flex items-center justify-center gap-3 cursor-pointer ${
+              className={`w-full py-3.5 sm:py-4 px-6 rounded-2xl text-white font-black text-lg sm:text-xl shadow-lg transition-all transform flex items-center justify-center gap-3 cursor-pointer ${
                 remainingCount <= 0
                   ? 'bg-slate-300 shadow-none cursor-not-allowed text-slate-500'
                   : isSpinning
@@ -237,13 +261,39 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
               }`}
             >
               <Shuffle className={`w-6 h-6 ${isSpinning ? 'animate-spin' : ''}`} />
-              <span>
-                {remainingCount <= 0
-                  ? '¡Fin del Juego! Todas las bolas salieron'
-                  : isSpinning
-                  ? 'Revolviendo bolitas 3D...'
-                  : '¡GIRAR Y SACAR BOLA!'}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                <span>
+                  {remainingCount <= 0
+                    ? '¡Fin del Juego! Todas las bolas salieron'
+                    : isSpinning
+                    ? 'Revolviendo bolitas 3D...'
+                    : '¡GIRAR Y SACAR BOLA!'}
+                </span>
+                {remainingCount > 0 && !isSpinning && (
+                  <span className="hidden sm:inline-block text-[11px] font-black bg-black/20 text-emerald-100 px-2 py-0.5 rounded-lg font-mono">
+                    Espacio ␣
+                  </span>
+                )}
+              </div>
+            </button>
+
+            {/* BIG "¡Cantar Bingo!" BUTTON WITH ENTER HINT (REQUESTED BY USER) */}
+            <button
+              id="claim-bingo-main-btn"
+              onClick={() => {
+                playSound('pop', soundEnabled);
+                onOpenBingoClaim();
+              }}
+              className="w-full py-3.5 sm:py-4 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-lg sm:text-xl shadow-xl shadow-rose-500/30 flex items-center justify-center gap-3 transition-transform transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer border-b-4 border-rose-700 animate-pulse"
+              title="Cantar y verificar si alguien ganó (también puedes pulsar Enter)"
+            >
+              <Trophy className="w-6 h-6 text-yellow-300 animate-bounce" />
+              <div className="flex items-center gap-2.5 flex-wrap justify-center">
+                <span>¡Cantar Bingo!</span>
+                <span className="text-[11px] font-black bg-black/25 text-rose-100 px-2 py-0.5 rounded-lg font-mono">
+                  Tecla Enter ↵
+                </span>
+              </div>
             </button>
 
             {/* Auto play controls */}
@@ -272,7 +322,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                 )}
               </div>
 
-              {/* Speed selector for kids */}
+              {/* Speed selector */}
               <div className="flex items-center gap-1">
                 <span className="text-slate-500 text-[11px] font-semibold mr-1">Pausa entre bolas:</span>
                 {[5, 7, 10].map((sec) => (
@@ -298,45 +348,45 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
         </div>
 
         {/* Right Column: Big Announced Ball Showcase */}
-        <div className="lg:col-span-6 bg-white rounded-3xl p-6 border-2 border-amber-200 shadow-md flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-6 bg-white rounded-3xl p-5 border-2 border-amber-200 shadow-md flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              Número Cantado
-            </span>
-            <div className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
-              Objetivo: <strong>{GAME_MODE_LABELS[activeMode].short}</strong>
+            <div className="text-xs font-black uppercase tracking-wider text-slate-400">
+              Última bola cantada
             </div>
+            {currentBall && (
+              <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                Bola #{drawnBalls.length}
+              </span>
+            )}
           </div>
 
-          {/* Big Ball Showcase */}
-          <div className="my-auto py-4 flex flex-col items-center justify-center text-center">
+          {/* Central Ball Showcase */}
+          <div className="py-6 flex flex-col items-center justify-center flex-1">
             <AnimatePresence mode="wait">
               {currentBall ? (
                 <motion.div
                   key={currentBall.number}
-                  initial={{ scale: 0.3, y: 30, opacity: 0 }}
-                  animate={{ scale: 1, y: 0, opacity: 1 }}
-                  exit={{ scale: 0.7, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-                  className="flex flex-col items-center"
+                  initial={{ scale: 0.3, rotate: -30, opacity: 0 }}
+                  animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 12, stiffness: 180 }}
+                  className="flex flex-col items-center text-center"
                 >
-                  {/* The Gigantic Ball */}
+                  {/* The Gigantic Ball Sphere */}
                   <div
-                    className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-white transform hover:scale-105 transition-transform select-none"
+                    className="w-36 h-36 sm:w-44 sm:h-44 rounded-full flex flex-col items-center justify-center text-white shadow-2xl relative border-4 border-white select-none"
                     style={{
-                      background: `radial-gradient(circle at 35% 35%, #ffffff 0%, ${
-                        LETTER_RANGES[currentBall.letter].color
-                      } 45%, #0f172a 100%)`,
-                      boxShadow: `0 20px 35px -10px ${LETTER_RANGES[currentBall.letter].color}66, inset 0 -8px 16px rgba(0,0,0,0.35)`,
+                      backgroundColor: LETTER_RANGES[currentBall.letter].color,
+                      boxShadow: `0 20px 40px -10px ${LETTER_RANGES[currentBall.letter].color}80`,
                     }}
                   >
-                    {/* Glowing highlight */}
-                    <div className="absolute top-4 left-6 w-10 h-6 bg-white/40 rounded-full blur-[2px] transform -rotate-45 pointer-events-none" />
+                    {/* Gloss shine reflection */}
+                    <div className="absolute top-2 left-5 w-14 h-8 bg-white/30 rounded-full rotate-[-25deg] blur-[1px]"></div>
 
-                    <span className="text-2xl sm:text-3xl font-black text-white/95 tracking-widest drop-shadow-md font-['Fredoka']">
+                    <span className="text-xl sm:text-2xl font-black font-['Fredoka'] tracking-widest opacity-90 leading-none mb-1">
                       {currentBall.letter}
                     </span>
-                    <span className="text-6xl sm:text-7xl font-black text-white tracking-tight drop-shadow-lg leading-none font-['Fredoka']">
+                    <span className="text-5xl sm:text-7xl font-black leading-none font-['Fredoka'] drop-shadow-md">
                       {currentBall.number}
                     </span>
                   </div>
@@ -369,7 +419,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                     <span className="text-xs font-bold text-amber-700 mt-1">¡Listo para jugar!</span>
                   </div>
                   <p className="text-sm font-bold text-slate-600 max-w-xs">
-                    Pulsa <strong className="text-emerald-600">"¡GIRAR Y SACAR BOLA!"</strong> para comenzar la partida familiar.
+                    Pulsa <strong className="text-emerald-600">"¡GIRAR Y SACAR BOLA!"</strong> o pulsa la tecla <strong className="text-slate-900">Espacio</strong> para comenzar la partida familiar.
                   </p>
                 </div>
               )}
