@@ -222,6 +222,83 @@ export interface Translations {
   footerMitLicense: string;
   footerCreatedUnder: string;
   footerGithubRepo: string;
+
+  // Automatic Draw Mode
+  autoModeStart: string;
+  autoModePause: string;
+  autoModeNextIn: string;
+  autoModeSpeedLabel: string;
+
+  // Wheel details
+  wheelCageBadge: string;
+  wheelRemainingBallsText: string;
+  wheelBallNumberPrefix: string;
+  wheelColumnPrefix: string;
+  wheelRangeTo: string;
+  wheelReadyToPlay: string;
+  wheelStartHint: string;
+  wheelRecentBalls: string;
+  wheelNoBallsDrawn: string;
+
+  // Master Board details
+  masterBoardOrderDrawn: string;
+  masterBoardNotYetDrawn: string;
+
+  // Scoreboard details
+  scoreboardPlayersCount: string;
+  scoreboardModeRowShort: string;
+  scoreboardModeColShort: string;
+  scoreboardModeFullShort: string;
+  scoreboardWinSingular: string;
+  scoreboardWinPlural: string;
+  scoreboardCompletedInBalls: string;
+  scoreboardBallsWord: string;
+  scoreboardDeleteRecordTooltip: string;
+  scoreboardRecentTime: string;
+
+  // Printable Cards details
+  printPlayerPrefix: string;
+  printRemovePlayerTitle: string;
+  printEachSuffix: string;
+  printCardSingular: string;
+  printCardPlural: string;
+  printTotalCardsSummary: string;
+  printSheetsSummary: string;
+  printColorStyleDesc: string;
+  printBwStyleDesc: string;
+  printShuffleGridsDesc: string;
+  printSheetPageInfo: string;
+  printCardNumberTitle: string;
+  printPdfSuccessNotice: string;
+  printPdfErrorNotice: string;
+  printCutHereCenterGuide: string;
+  printCutHorizontalGuide: string;
+  printBeansCoverHint: string;
+  printFreeCenterPdfHint: string;
+  printPdfTopTitle: string;
+
+  // Digital Cards details
+  digitalNotDrawnWarning: string;
+  digitalLineSingular: string;
+  digitalLinePlural: string;
+
+  // Bingo Claim Modal details
+  claimDefaultChampionName: string;
+  claimManualVerifiedDesc: string;
+  claimStep1Subtitle: string;
+  claimRecordedBadge: string;
+  claimHostGuideText: string;
+  claimHostCheckNumbersText: string;
+  claimSearchDrawnBadge: string;
+  claimSearchNotDrawnBadge: string;
+  claimBallsDrawnOutOf: string;
+  claimMatchesBoardQuestion: string;
+  claimAchievedWithBalls: string;
+  claimNoVictoryRecordedNotice: string;
+  claimCheckAgainBtn: string;
+
+  // Version
+  versionLabel: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -453,6 +530,83 @@ export const translations: Record<Language, Translations> = {
     footerMitLicense: 'Licencia MIT',
     footerCreatedUnder: 'Creado bajo',
     footerGithubRepo: 'Repositorio en GitHub',
+
+    // Automatic Draw Mode
+    autoModeStart: 'Modo Automático',
+    autoModePause: 'Pausar automático',
+    autoModeNextIn: 'Siguiente en',
+    autoModeSpeedLabel: 'Pausa entre bolas:',
+
+    // Wheel details
+    wheelCageBadge: 'Bombo 3D Three.js',
+    wheelRemainingBallsText: 'Quedan {0} de 75 bolas',
+    wheelBallNumberPrefix: 'Bola #',
+    wheelColumnPrefix: 'Columna',
+    wheelRangeTo: 'a',
+    wheelReadyToPlay: '¡Listo para jugar!',
+    wheelStartHint: 'Pulsa "¡GIRAR Y SACAR BOLA!" o pulsa la tecla Espacio para comenzar la partida familiar.',
+    wheelRecentBalls: 'Últimas 5 bolitas:',
+    wheelNoBallsDrawn: 'Aún no hay bolitas cantadas',
+
+    // Master Board details
+    masterBoardOrderDrawn: 'Extraída en orden #',
+    masterBoardNotYetDrawn: 'No extraída',
+
+    // Scoreboard details
+    scoreboardPlayersCount: 'jugadores',
+    scoreboardModeRowShort: 'Fila',
+    scoreboardModeColShort: 'Col',
+    scoreboardModeFullShort: 'Todo',
+    scoreboardWinSingular: 'Victoria',
+    scoreboardWinPlural: 'Victorias',
+    scoreboardCompletedInBalls: 'Completó en',
+    scoreboardBallsWord: 'bolas',
+    scoreboardDeleteRecordTooltip: 'Eliminar este registro',
+    scoreboardRecentTime: 'Reciente',
+
+    // Printable Cards details
+    printPlayerPrefix: 'Jugador',
+    printRemovePlayerTitle: 'Eliminar jugador',
+    printEachSuffix: 'c/u',
+    printCardSingular: 'cartón',
+    printCardPlural: 'cartones',
+    printTotalCardsSummary: 'Total: {0} cartones ({1} jugadores × {2})',
+    printSheetsSummary: 'Genera {0} hojas en el PDF',
+    printColorStyleDesc: 'Bordes e insignias alegres',
+    printBwStyleDesc: 'Escala de grises económica',
+    printShuffleGridsDesc: 'Genera nuevas combinaciones aleatorias',
+    printSheetPageInfo: 'Página {0} de {1} ({2} cartones por hoja)',
+    printCardNumberTitle: 'Cartón #{0} • ¡Bingo Familiar!',
+    printPdfSuccessNotice: '¡PDF generado con éxito! Archivo:',
+    printPdfErrorNotice: 'Hubo un problema generando el archivo PDF de los cartones.',
+    printCutHereCenterGuide: '-- Cortar con tijera aquí --',
+    printCutHorizontalGuide: '-- Cortar horizontal --',
+    printBeansCoverHint: 'Tapa tus números con porotos o lentejas',
+    printFreeCenterPdfHint: '* Centro gratis',
+    printPdfTopTitle: 'Bingo Familiar - Página {0} de {1}',
+
+    // Digital Cards details
+    digitalNotDrawnWarning: '¡El número {0} aún no sale del bombo!',
+    digitalLineSingular: 'Línea',
+    digitalLinePlural: 'Líneas',
+
+    // Bingo Claim Modal details
+    claimDefaultChampionName: 'Campeón',
+    claimManualVerifiedDesc: 'Victoria manual verificada',
+    claimStep1Subtitle: 'Teclea el nombre de quien cantó Bingo para verificar los números en el Tablero Maestro.',
+    claimRecordedBadge: 'Quedará en el Scoreboard',
+    claimHostGuideText: 'El encargado de la ruleta revisará con el Tablero Maestro los números cantados.',
+    claimHostCheckNumbersText: 'Pídele al jugador que cante sus números y comprueba que estén encendidos con color.',
+    claimSearchDrawnBadge: '¡SALIÓ!',
+    claimSearchNotDrawnBadge: 'NO HA SALIDO',
+    claimBallsDrawnOutOf: 'bolas cantadas',
+    claimMatchesBoardQuestion: '¿Los números cantados por el jugador coinciden con el tablero?',
+    claimAchievedWithBalls: 'Logrado con {0} bolas cantadas del bombo',
+    claimNoVictoryRecordedNotice: 'No se registró victoria en el Scoreboard. Pueden seguir jugando normalmente.',
+    claimCheckAgainBtn: 'Volver a revisar',
+
+    // Version
+    versionLabel: 'Versión',
   },
 
   en: {
@@ -683,6 +837,83 @@ export const translations: Record<Language, Translations> = {
     footerMitLicense: 'MIT License',
     footerCreatedUnder: 'Released under',
     footerGithubRepo: 'GitHub Repository',
+
+    // Automatic Draw Mode
+    autoModeStart: 'Auto Draw',
+    autoModePause: 'Pause Auto',
+    autoModeNextIn: 'Next in',
+    autoModeSpeedLabel: 'Pause between balls:',
+
+    // Wheel details
+    wheelCageBadge: '3D Three.js Cage',
+    wheelRemainingBallsText: '{0} of 75 balls left',
+    wheelBallNumberPrefix: 'Ball #',
+    wheelColumnPrefix: 'Column',
+    wheelRangeTo: 'to',
+    wheelReadyToPlay: 'Ready to play!',
+    wheelStartHint: 'Click "SPIN & DRAW BALL!" or press the Spacebar to start the game.',
+    wheelRecentBalls: 'Last 5 balls drawn:',
+    wheelNoBallsDrawn: 'No balls drawn yet',
+
+    // Master Board details
+    masterBoardOrderDrawn: 'Drawn order #',
+    masterBoardNotYetDrawn: 'Not drawn yet',
+
+    // Scoreboard details
+    scoreboardPlayersCount: 'players',
+    scoreboardModeRowShort: 'Row',
+    scoreboardModeColShort: 'Col',
+    scoreboardModeFullShort: 'Full',
+    scoreboardWinSingular: 'Win',
+    scoreboardWinPlural: 'Wins',
+    scoreboardCompletedInBalls: 'Completed in',
+    scoreboardBallsWord: 'balls',
+    scoreboardDeleteRecordTooltip: 'Delete record',
+    scoreboardRecentTime: 'Recent',
+
+    // Printable Cards details
+    printPlayerPrefix: 'Player',
+    printRemovePlayerTitle: 'Remove player',
+    printEachSuffix: 'ea.',
+    printCardSingular: 'card',
+    printCardPlural: 'cards',
+    printTotalCardsSummary: 'Total: {0} cards ({1} players × {2})',
+    printSheetsSummary: 'Generates {0} sheets in PDF',
+    printColorStyleDesc: 'Vibrant colors & badges',
+    printBwStyleDesc: 'Budget grayscale',
+    printShuffleGridsDesc: 'Generate new random layouts',
+    printSheetPageInfo: 'Page {0} of {1} ({2} cards per sheet)',
+    printCardNumberTitle: 'Card #{0} • Family Bingo!',
+    printPdfSuccessNotice: 'PDF generated successfully! File:',
+    printPdfErrorNotice: 'There was a problem generating the PDF bingo cards.',
+    printCutHereCenterGuide: '-- Cut with scissors here --',
+    printCutHorizontalGuide: '-- Cut horizontal --',
+    printBeansCoverHint: 'Cover numbers with beans or tokens',
+    printFreeCenterPdfHint: '* Free center',
+    printPdfTopTitle: 'Family Bingo - Page {0} of {1}',
+
+    // Digital Cards details
+    digitalNotDrawnWarning: 'Number {0} has not been drawn yet!',
+    digitalLineSingular: 'Line',
+    digitalLinePlural: 'Lines',
+
+    // Bingo Claim Modal details
+    claimDefaultChampionName: 'Champion',
+    claimManualVerifiedDesc: 'Manual verified victory',
+    claimStep1Subtitle: 'Type the winner’s name to check their called numbers on the Master Board.',
+    claimRecordedBadge: 'Recorded on Scoreboard',
+    claimHostGuideText: 'The cage host will check the called numbers against the Master Board.',
+    claimHostCheckNumbersText: 'Ask the player to call out their numbers and verify that they are lit up in color.',
+    claimSearchDrawnBadge: 'DRAWN!',
+    claimSearchNotDrawnBadge: 'NOT DRAWN',
+    claimBallsDrawnOutOf: 'balls drawn',
+    claimMatchesBoardQuestion: 'Do the numbers called out by the player match the board?',
+    claimAchievedWithBalls: 'Achieved with {0} balls drawn from cage',
+    claimNoVictoryRecordedNotice: 'No victory recorded on Scoreboard. You can resume regular play.',
+    claimCheckAgainBtn: 'Check again',
+
+    // Version
+    versionLabel: 'Version',
   },
   it: {
     // Brand & Header
@@ -912,6 +1143,83 @@ export const translations: Record<Language, Translations> = {
     footerMitLicense: 'Licenza MIT',
     footerCreatedUnder: 'Rilasciato con',
     footerGithubRepo: 'Repository GitHub',
+
+    // Automatic Draw Mode
+    autoModeStart: 'Modalità Automatica',
+    autoModePause: 'Pausa Automatica',
+    autoModeNextIn: 'Prossima tra',
+    autoModeSpeedLabel: 'Pausa tra palline:',
+
+    // Wheel details
+    wheelCageBadge: 'Gabbia 3D Three.js',
+    wheelRemainingBallsText: 'Rimangono {0} su 75 palline',
+    wheelBallNumberPrefix: 'Pallina #',
+    wheelColumnPrefix: 'Colonna',
+    wheelRangeTo: 'a',
+    wheelReadyToPlay: '¡Pronto a giocare!',
+    wheelStartHint: 'Premi "¡GIRA ED ESTRAI PALLINA!" o premi la barra Spazio per iniziare la partita.',
+    wheelRecentBalls: 'Ultime 5 palline estratte:',
+    wheelNoBallsDrawn: 'Nessuna pallina ancora estratta',
+
+    // Master Board details
+    masterBoardOrderDrawn: 'Estratta al #',
+    masterBoardNotYetDrawn: 'Non ancora estratta',
+
+    // Scoreboard details
+    scoreboardPlayersCount: 'giocatori',
+    scoreboardModeRowShort: 'Riga',
+    scoreboardModeColShort: 'Colonna',
+    scoreboardModeFullShort: 'Tutto',
+    scoreboardWinSingular: 'Vittoria',
+    scoreboardWinPlural: 'Vittorie',
+    scoreboardCompletedInBalls: 'Completato in',
+    scoreboardBallsWord: 'palline',
+    scoreboardDeleteRecordTooltip: 'Elimina registrazione',
+    scoreboardRecentTime: 'Recente',
+
+    // Printable Cards details
+    printPlayerPrefix: 'Giocatore',
+    printRemovePlayerTitle: 'Rimuovi giocatore',
+    printEachSuffix: 'cad.',
+    printCardSingular: 'cartella',
+    printCardPlural: 'cartelle',
+    printTotalCardsSummary: 'Totale: {0} cartelle ({1} giocatori × {2})',
+    printSheetsSummary: 'Genera {0} fogli nel PDF',
+    printColorStyleDesc: 'Bordi e colori vivaci',
+    printBwStyleDesc: 'Scala di grigi economica',
+    printShuffleGridsDesc: 'Genera nuove combinazioni casuali',
+    printSheetPageInfo: 'Pagina {0} di {1} ({2} cartelle per foglio)',
+    printCardNumberTitle: 'Cartella #{0} • Bingo di Famiglia!',
+    printPdfSuccessNotice: 'PDF generato con successo! File:',
+    printPdfErrorNotice: 'Si è verificato un errore durante la generazione del file PDF delle cartelle.',
+    printCutHereCenterGuide: '-- Tagliare con le forbici qui --',
+    printCutHorizontalGuide: '-- Taglio orizzontale --',
+    printBeansCoverHint: 'Copri i numeri con fagioli o gettoni',
+    printFreeCenterPdfHint: '* Centro gratuito',
+    printPdfTopTitle: 'Bingo di Famiglia - Pagina {0} di {1}',
+
+    // Digital Cards details
+    digitalNotDrawnWarning: 'Il numero {0} non è ancora uscito dalla gabbia!',
+    digitalLineSingular: 'Riga',
+    digitalLinePlural: 'Righe',
+
+    // Bingo Claim Modal details
+    claimDefaultChampionName: 'Campione',
+    claimManualVerifiedDesc: 'Vittoria manuale verificata',
+    claimStep1Subtitle: 'Digita il nome del vincitore per verificare i numeri sul Tabellone Maestro.',
+    claimRecordedBadge: 'Registrato nel Tabellone',
+    claimHostGuideText: 'Il responsabile della gabbia controllerà i numeri chiamati sul Tabellone Maestro.',
+    claimHostCheckNumbersText: 'Chiedi al giocatore di chiamare i suoi numeri e verifica che siano illuminati a colori.',
+    claimSearchDrawnBadge: 'ESTRATTO!',
+    claimSearchNotDrawnBadge: 'NON ESTRATTO',
+    claimBallsDrawnOutOf: 'palline estratte',
+    claimMatchesBoardQuestion: 'I numeri chiamati dal giocatore corrispondono al tabellone?',
+    claimAchievedWithBalls: 'Raggiunto con {0} palline estratte dalla gabbia',
+    claimNoVictoryRecordedNotice: 'Nessuna vittoria registrata nel Tabellone. Potete continuare a giocare normalmente.',
+    claimCheckAgainBtn: 'Controlla di nuovo',
+
+    // Version
+    versionLabel: 'Versione',
   },
 };
 

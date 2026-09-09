@@ -1,14 +1,17 @@
 import { jsPDF } from 'jspdf';
-import { PlayerBingoCard, BingoLetter, CardsPerPage, InkMode } from '../types';
+import { PlayerBingoCard, BingoLetter, CardsPerPage, InkMode, Language } from '../types';
 import { LETTER_RANGES } from './bingoData';
+import { translations } from '../i18n/translations';
 
 interface GeneratePdfOptions {
   cards: PlayerBingoCard[];
   cardsPerPage: CardsPerPage; // 2 or 4
   inkMode: InkMode; // 'color' or 'bw'
+  lang?: Language;
 }
 
-export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOptions): jsPDF {
+export function generateBingoPdf({ cards, cardsPerPage, inkMode, lang = 'es' }: GeneratePdfOptions): jsPDF {
+  const t = translations[lang] || translations.es;
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -64,7 +67,7 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
     doc.setFontSize(cardsPerPage === 2 ? 8.5 : 7);
     doc.setTextColor(isBW ? 100 : 120, isBW ? 100 : 120, isBW ? 100 : 120);
     doc.text(
-      `Carton #${card.cardIndex} - Bingo Familiar`,
+      t.printCardNumberTitle.replace('{0}', String(card.cardIndex)),
       x + 4,
       y + (cardsPerPage === 2 ? 11.5 : 8.5)
     );
@@ -154,7 +157,7 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
           doc.text('*', cellX + colWidth / 2, cellY + cellHeight / 2 + 1, { align: 'center' });
 
           doc.setFontSize(cardsPerPage === 2 ? 6.5 : 5);
-          doc.text('GRATIS', cellX + colWidth / 2, cellY + cellHeight - 1.5, { align: 'center' });
+          doc.text(t.freeSpaceLabel, cellX + colWidth / 2, cellY + cellHeight - 1.5, { align: 'center' });
         } else {
           doc.setFillColor(255, 255, 255);
           doc.setDrawColor(isBW ? 180 : 226, isBW ? 180 : 232, isBW ? 180 : 240);
@@ -180,8 +183,8 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(cardsPerPage === 2 ? 7 : 5.5);
     doc.setTextColor(140, 140, 140);
-    doc.text('Tapa tus numeros con porotos o lentejas', x + 4, footerY);
-    doc.text('* Centro gratis', x + width - 4, footerY, { align: 'right' });
+    doc.text(t.printBeansCoverHint, x + 4, footerY);
+    doc.text(t.printFreeCenterPdfHint, x + width - 4, footerY, { align: 'right' });
   };
 
   // Group cards into pages
@@ -198,7 +201,7 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(160, 160, 160);
-    doc.text(`Bingo Familiar - Pagina ${p + 1} de ${totalPages}`, 14, 8);
+    doc.text(t.printPdfTopTitle.replace('{0}', String(p + 1)).replace('{1}', String(totalPages)), 14, 8);
 
     if (cardsPerPage === 2) {
       // 2 Cards per page (Stacked vertically)
@@ -219,7 +222,7 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(150, 150, 150);
-      doc.text('-- Cortar con tijera aqui --', 105, 146, { align: 'center' });
+      doc.text(t.printCutHereCenterGuide, 105, 146, { align: 'center' });
       doc.setLineDashPattern([], 0); // Reset dash
 
       // Card 2
@@ -250,7 +253,7 @@ export function generateBingoPdf({ cards, cardsPerPage, inkMode }: GeneratePdfOp
       doc.setLineDashPattern([3, 3], 0);
       doc.setLineWidth(0.4);
       doc.line(10, 147, 200, 147);
-      doc.text('-- Cortar horizontal --', 105, 146, { align: 'center' });
+      doc.text(t.printCutHorizontalGuide, 105, 146, { align: 'center' });
 
       // Vertical Cut line
       doc.line(105, 10, 105, 285);

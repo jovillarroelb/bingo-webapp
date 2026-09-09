@@ -36,12 +36,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
     // Check if the number has actually been drawn
     if (!drawnSet.has(cellVal)) {
       playSound('error', soundEnabled);
-      const msg =
-        lang === 'es'
-          ? `¡El número ${cellVal} aún no sale del bombo!`
-          : lang === 'it'
-          ? `Il numero ${cellVal} non è ancora uscito dalla gabbia!`
-          : `Number ${cellVal} has not been drawn yet!`;
+      const msg = t.digitalNotDrawnWarning.replace('{0}', String(cellVal));
       setWarningMessage(msg);
       setTimeout(() => setWarningMessage(null), 3000);
       return;
@@ -134,7 +129,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
                       {card.playerName}
                     </div>
                     <div className="text-[11px] font-bold text-slate-400 mt-0.5">
-                      {lang === 'es' ? `Cartón #${card.cardIndex}` : lang === 'it' ? `Cartella #${card.cardIndex}` : `Card #${card.cardIndex}`}
+                      {t.printCardSingular} #{card.cardIndex}
                     </div>
                   </div>
                 </div>
@@ -148,17 +143,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
                   {check.completedLines > 0 && !check.isBingo && (
                     <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500 text-white">
                       {check.completedLines}{' '}
-                      {check.completedLines === 1
-                        ? lang === 'es'
-                          ? 'Línea'
-                          : lang === 'it'
-                          ? 'Riga'
-                          : 'Line'
-                        : lang === 'es'
-                        ? 'Líneas'
-                        : lang === 'it'
-                        ? 'Righe'
-                        : 'Lines'}
+                      {check.completedLines === 1 ? t.digitalLineSingular : t.digitalLinePlural}
                     </span>
                   )}
                   <button

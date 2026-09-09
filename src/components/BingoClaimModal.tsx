@@ -67,7 +67,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
   const letters: BingoLetter[] = ['B', 'I', 'N', 'G', 'O'];
   const searchNum = parseInt(searchQuery.trim(), 10);
   const isSearchValid = !isNaN(searchNum) && searchNum >= 1 && searchNum <= 75;
-  const currentWinnerName = typedPlayerName.trim() || (lang === 'es' ? 'Campeón' : 'Champion');
+  const currentWinnerName = typedPlayerName.trim() || t.claimDefaultChampionName;
 
   // Fireworks celebration sequence
   const launchFireworks = () => {
@@ -109,10 +109,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
   const handleConfirmOk = () => {
     launchFireworks();
     if (!hasRecorded) {
-      const patternDesc =
-        lang === 'es'
-          ? `Victoria manual verificada (${GAME_MODE_LABELS[activeMode].short})`
-          : `Manual verified victory (${getGameModeLabel(activeMode, 'en')})`;
+      const patternDesc = `${t.claimManualVerifiedDesc} (${getGameModeLabel(activeMode, lang)})`;
 
       onRecordWin(currentWinnerName, activeMode, drawnBalls.length, patternDesc);
       setHasRecorded(true);
@@ -162,9 +159,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                 {t.claimModalTitle}
               </h3>
               <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                {lang === 'es'
-                  ? 'Teclea el nombre de quien cantó Bingo para verificar los números en el Tablero Maestro.'
-                  : 'Type the winner’s name to check their called numbers on the Master Board.'}
+                {t.claimStep1Subtitle}
               </p>
             </div>
 
@@ -199,13 +194,11 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                 })}
               </div>
               <p className="text-[10px] text-slate-500 text-center font-semibold pt-0.5">
-                {lang === 'es'
-                  ? GAME_MODE_LABELS[activeMode].desc
+                {activeMode === 'full_card'
+                  ? t.modeFullCardDesc
                   : activeMode === 'line_row'
-                  ? 'Complete any horizontal row (5 numbers)'
-                  : activeMode === 'line_col'
-                  ? 'Complete any vertical column (5 numbers)'
-                  : 'Complete all 25 numbers on the card'}
+                  ? t.modeLineRowDesc
+                  : t.modeLineColDesc}
               </p>
             </div>
 
@@ -217,7 +210,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                   <span>{t.claimWinnerNameLabel}</span>
                 </span>
                 <span className="text-[10px] text-amber-800 font-bold">
-                  {lang === 'es' ? 'Quedará en el Scoreboard' : 'Recorded on Scoreboard'}
+                  {t.claimRecordedBadge}
                 </span>
               </label>
 
@@ -233,17 +226,11 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                     playSound('click', soundEnabled);
                   }
                 }}
-                placeholder={
-                  lang === 'es'
-                    ? 'Teclea el nombre aquí (ej: Santi, Papá, Sofía, Mamá...)'
-                    : 'Type name here (e.g. Santi, Dad, Sophia, Mom...)'
-                }
+                placeholder={t.claimWinnerNamePlaceholder}
                 className="w-full px-4 py-3 rounded-xl bg-white border-2 border-amber-400 font-bold text-slate-900 text-base focus:outline-hidden focus:border-amber-600 focus:ring-2 focus:ring-amber-200 shadow-xs"
               />
               <p className="text-[11px] text-slate-500 font-semibold">
-                {lang === 'es'
-                  ? 'El encargado de la ruleta revisará con el Tablero Maestro los números cantados.'
-                  : 'The cage host will check the called numbers against the Master Board.'}
+                {t.claimHostGuideText}
               </p>
             </div>
 
@@ -305,9 +292,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                     {t.claimHostVerifyGuide}
                   </h4>
                   <p className="text-[11px] text-amber-800 font-semibold">
-                    {lang === 'es'
-                      ? 'Pídele al jugador que cante sus números y comprueba que estén encendidos con color.'
-                      : 'Ask the player to call out their numbers and verify that they are lit up in color.'}
+                    {t.claimHostCheckNumbersText}
                   </p>
                 </div>
               </div>
@@ -335,12 +320,8 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                     }`}
                   >
                     {drawnMap.has(searchNum)
-                      ? lang === 'es'
-                        ? `¡SALIÓ! (#${drawnMap.get(searchNum)})`
-                        : `DRAWN! (#${drawnMap.get(searchNum)})`
-                      : lang === 'es'
-                      ? 'NO HA SALIDO'
-                      : 'NOT DRAWN'}
+                      ? `${t.claimSearchDrawnBadge} (#${drawnMap.get(searchNum)})`
+                      : t.claimSearchNotDrawnBadge}
                   </span>
                 )}
               </div>
@@ -351,7 +332,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 px-1">
                 <span>{t.masterBoardTitle}</span>
                 <span className="font-extrabold text-amber-700">
-                  {drawnBalls.length} / 75 {lang === 'es' ? 'bolas cantadas' : 'balls drawn'}
+                  {drawnBalls.length} / 75 {t.claimBallsDrawnOutOf}
                 </span>
               </div>
 
@@ -383,16 +364,8 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                               key={num}
                               title={`${letter}-${num}${nickname ? `: ${emoji} ${nickname}` : ''}${
                                 isDrawn
-                                  ? lang === 'es'
-                                    ? ` (Salió #${drawnMap.get(num)})`
-                                    : lang === 'it'
-                                    ? ` (Uscito #${drawnMap.get(num)})`
-                                    : ` (Drawn #${drawnMap.get(num)})`
-                                  : lang === 'es'
-                                  ? ' (Aún en el bombo)'
-                                  : lang === 'it'
-                                  ? ' (Ancora nella gabbia)'
-                                  : ' (Not drawn)'
+                                  ? ` (${t.masterBoardOrderDrawn}${drawnMap.get(num)})`
+                                  : ` (${t.masterBoardNotYetDrawn})`
                               }`}
                               className={`relative aspect-square rounded-lg flex flex-col items-center justify-center font-black text-xs transition-all select-none ${
                                 isDrawn
@@ -421,9 +394,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
             {/* Manual Verification Actions: OK (Green) and MAL (Red) as requested */}
             <div className="pt-1 space-y-2">
               <div className="text-center text-xs font-bold text-slate-600">
-                {lang === 'es'
-                  ? '¿Los números cantados por el jugador coinciden con el tablero?'
-                  : 'Do the numbers called out by the player match the board?'}
+                {t.claimMatchesBoardQuestion}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -469,9 +440,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
               👑 {t.claimCongrats} {currentWinnerName}!
               <div className="text-xs font-bold text-emerald-700 mt-1">
                 {getGameModeLabel(activeMode, lang)} •{' '}
-                {lang === 'es'
-                  ? `Logrado con ${drawnBalls.length} bolas cantadas del bombo`
-                  : `Achieved with ${drawnBalls.length} balls drawn from cage`}
+                {t.claimAchievedWithBalls.replace('{0}', String(drawnBalls.length))}
               </div>
             </div>
 
@@ -520,9 +489,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
             <div className="bg-white/80 p-3 rounded-2xl border border-amber-200 text-xs font-bold text-slate-700 flex items-center justify-center gap-2">
               <Dices className="w-4 h-4 text-amber-600" />
               <span>
-                {lang === 'es'
-                  ? 'No se registró victoria en el Scoreboard. Pueden seguir jugando normalmente.'
-                  : 'No victory recorded on Scoreboard. You can resume regular play.'}
+                {t.claimNoVictoryRecordedNotice}
               </span>
             </div>
 
@@ -531,7 +498,7 @@ export const BingoClaimModal: React.FC<BingoClaimModalProps> = ({
                 onClick={() => setStep('verify')}
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-extrabold text-xs border border-slate-300 shadow-xs cursor-pointer"
               >
-                {lang === 'es' ? 'Volver a revisar' : 'Check again'}
+                {t.claimCheckAgainBtn}
               </button>
 
               <button

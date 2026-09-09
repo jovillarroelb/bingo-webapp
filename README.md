@@ -1,55 +1,70 @@
-# 🎉 ¡Bingo Familiar! — Ruleta 3D, Bombo y Cartones Imprimibles
+# 🎉 ¡Bingo Familiar! — Ruleta 3D, Bombo y Cartones Imprimibles `v1.0.0`
 
-Una aplicación web moderna, interactiva y festiva diseñada para jugar al Bingo tradicional en familia, con apoderados, cursos escolares o grupos de amigos. Incluye un bombo 3D interactivo con física de esferas, generación de cartones en PDF listos para imprimir, verificación instantánea con fuegos artificiales, tablero maestro y marcador (*scoreboard*) por sesión.
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](package.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-emerald.svg)](https://jovillarroelb.github.io/bingo-webapp/)
+
+Una aplicación web moderna, interactiva y festiva diseñada para jugar al Bingo tradicional en familia, con apoderados, cursos escolares o grupos de amigos. Incluye un bombo 3D interactivo con física de esferas en Three.js, soporte multi-idioma (Español 🇨🇱, English 🇬🇧, Italiano 🇮🇹), generación de cartones en PDF listos para imprimir, verificación instantánea con fuegos artificiales, tablero maestro y marcador (*scoreboard*) por sesión.
+
+**🌐 Sitio web en vivo**: [https://jovillarroelb.github.io/bingo-webapp/](https://jovillarroelb.github.io/bingo-webapp/)
 
 ---
 
 ## 🚀 Tecnologías Utilizadas
 
-Esta aplicación **NO** es HTML/CSS básico ni usa Vue. Es una **Single Page Application (SPA) moderna basada en React, TypeScript y Vite**:
+Esta aplicación es una **Single Page Application (SPA) moderna basada en React 19, TypeScript y Vite**:
 
 | Tecnología | Versión / Detalle | Propósito en la Aplicación |
 | :--- | :--- | :--- |
 | **React** | `v19` | Biblioteca principal de interfaces reactivas, estado de componentes y modales interactivos. |
 | **TypeScript** | `v5.8` | Tipado estático estricto para garantizar fiabilidad y prevenir errores en tiempo de ejecución. |
 | **Vite** | `v6.2` | Bundler y servidor de desarrollo ultra-rápido de última generación. |
+| **Bun / npm** | `v1.3` / `v20+` | Gestión de dependencias y compilación veloz. |
 | **Tailwind CSS** | `v4` | Framework de diseño utilitario para estilos modernos, diseño responsivo y reglas de impresión (`@media print`). |
 | **Three.js** | `v0.186` | Renderizado 3D acelerado por WebGL para el bombo giratorio, iluminación y bolitas con textura física. |
 | **jsPDF** | `v4.2` | Motor de generación vectorial directa de documentos PDF con cartones formateados para corte con tijera. |
 | **Canvas-Confetti** | `v1.9` | Efectos visuales de fiesta, explosión de confeti y fuegos artificiales al verificar un Bingo ganador. |
 | **Lucide React** | `v0.546` | Iconografía vectorizada nítida y accesible. |
 | **Web Audio API** | Nativa | Efectos de sonido sintetizados en el navegador (giro de bombo, extracción de bola, clic y fanfarria triunfal). |
+| **Internacionalización (i18n)** | Nativa | Soporte completo al 100% de traducción y localización para Español, Inglés e Italiano. |
 | **LocalStorage / State** | Nativa | Persistencia de participantes y configuración de cartones; reseteo limpio de marcador por sesión. |
 
 ---
 
 ## ✨ Características Principales
 
-1. **Pantalla de Bienvenida (Landing Page)**: Acceso directo con un solo clic en *"Iniciar Sesión de Juego"*, sin necesidad de cuentas ni contraseñas.
-2. **Ruleta 3D y Bombo Interactivo**:
+1. **Control de Versiones y Despliegue CI/CD (`v1.0.0`)**:
+   - Etiquetado de versión oficial visible en pie de página e historial de cambios.
+   - Despliegue automatizado en GitHub Pages con GitHub Actions mediante Bun.
+2. **Soporte Multi-Idioma al 100% (i18n)**:
+   - Alternador dinámico de idiomas en cabecera: **Español (Chile 🇨🇱)**, **English (UK 🇬🇧)** e **Italiano (🇮🇹)**.
+   - Toda la interfaz, modales, modo automático, mensajes, apodos infantiles (75 números) y PDF se adaptan al idioma seleccionado.
+3. **Pantalla de Bienvenida (Landing Page)**: Acceso directo con un solo clic en *"Iniciar Sesión de Juego"*, sin necesidad de cuentas ni contraseñas.
+4. **Ruleta 3D y Bombo Interactivo**:
    - Jaula metálica tridimensional en **Three.js** que gira de manera realista.
    - 75 bolitas numeradas del 1 al 75 organizadas por letra tradicional (**B - I - N - G - O**).
+   - Modo automático con temporizador ajustable (5s, 7s, 10s).
    - Atajo de teclado: **Barra Espaciadora** (`Espacio`) para girar y sacar bola.
-3. **Botón ¡Cantar Bingo! y Verificación con Fiesta**:
+5. **Botón ¡Cantar Bingo! y Verificación con Fiesta**:
    - Botón grande y visible para cantar Bingo al instante.
    - Atajo de teclado: Tecla **`Enter ↵`**.
    - Animación de victoria con fuegos artificiales y confeti.
-4. **Modalidades de Juego**:
+6. **Modalidades de Juego**:
    - 🏆 **Cartón Lleno** (Full House)
    - ↔️ **Línea Horizontal** (Fila)
    - ↕️ **Línea Vertical** (Columna)
-5. **Generador e Impresión de Cartones en PDF**:
+7. **Generador e Impresión de Cartones en PDF**:
    - Permite personalizar los nombres de los participantes (ideal para cursos o familias).
    - Generación de 1, 2 o 4 cartones por hoja tamaño carta/A4 con líneas guía de tijera (✂️).
    - Descarga directa en archivo `.pdf` o impresión nativa con `Ctrl + P`.
-6. **Modo Digital**:
-   - Para jugar directamente en tablets, notebooks o teléfonos marcando casillas en pantalla.
-7. **Scoreboard por Sesión**:
+8. **Modo Digital**:
+   - Para jugar directamente en tablets, notebooks o teléfonos marcando casillas en pantalla con estampitas personalizables.
+9. **Scoreboard por Sesión**:
    - Permite registrar el nombre del ganador tecleándolo directamente.
    - Muestra podio con trofeos (🥇, 🥈, 🥉) y estadísticas de bolas cantadas.
    - Cada nueva sesión comienza con un marcador limpio.
-8. **Instrucciones Integradas**:
-   - Guía completa paso a paso accesible en cualquier momento desde el botón *"Instrucciones"*.
+10. **Instrucciones Integradas**:
+    - Guía completa paso a paso accesible en cualquier momento desde el botón *"Instrucciones"*.
 
 ---
 

@@ -76,12 +76,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
   // Add a new participant
   const handleAddParticipant = () => {
     playSound('pop', soundEnabled);
-    const newName =
-      lang === 'es'
-        ? `Jugador ${participants.length + 1}`
-        : lang === 'it'
-        ? `Giocatore ${participants.length + 1}`
-        : `Player ${participants.length + 1}`;
+    const newName = `${t.printPlayerPrefix} ${participants.length + 1}`;
     const updated = [...participants, newName];
     onUpdateParticipants(updated);
     const newCards = generateCardsForParticipants(updated, cardsPerParticipant);
@@ -117,6 +112,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
           cards,
           cardsPerPage,
           inkMode,
+          lang,
         });
 
         const fileName =
@@ -128,13 +124,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
         doc.save(fileName);
 
         setIsGeneratingPdf(false);
-        setPdfSuccessMessage(
-          lang === 'es'
-            ? `¡PDF generado con éxito! Archivo: "${fileName}"`
-            : lang === 'it'
-            ? `PDF generato con successo! File: "${fileName}"`
-            : `PDF generated successfully! File: "${fileName}"`
-        );
+        setPdfSuccessMessage(`${t.printPdfSuccessNotice} "${fileName}"`);
         playSound('fanfare', soundEnabled);
 
         setTimeout(() => setPdfSuccessMessage(null), 5000);
@@ -142,13 +132,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
     } catch (err) {
       console.error('Error generating PDF:', err);
       setIsGeneratingPdf(false);
-      alert(
-        lang === 'es'
-          ? 'Hubo un problema generando el archivo PDF de los cartones.'
-          : lang === 'it'
-          ? 'Si è verificato un errore durante la generazione del file PDF delle cartelle.'
-          : 'There was a problem generating the PDF bingo cards.'
-      );
+      alert(t.printPdfErrorNotice);
     }
   };
 
@@ -243,14 +227,14 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
                   type="text"
                   value={name}
                   onChange={(e) => handleUpdateParticipantName(idx, e.target.value)}
-                  placeholder={`${lang === 'es' ? 'Jugador' : lang === 'it' ? 'Giocatore' : 'Player'} #${idx + 1}`}
+                  placeholder={`${t.printPlayerPrefix} #${idx + 1}`}
                   className="w-full text-xs font-bold text-slate-800 bg-transparent focus:outline-hidden"
                 />
                 {participants.length > 1 && (
                   <button
                     onClick={() => handleRemoveParticipant(idx)}
                     className="text-slate-300 hover:text-rose-600 p-1 rounded-md transition-colors cursor-pointer"
-                    title={lang === 'es' ? 'Eliminar jugador' : lang === 'it' ? 'Rimuovi giocatore' : 'Remove player'}
+                    title={t.printRemovePlayerTitle}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -270,7 +254,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
                 <span>{t.cardsPerPlayerLabel}:</span>
               </label>
               <span className="text-[10px] font-black text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded-md">
-                {cardsPerParticipant} {lang === 'es' ? 'c/u' : lang === 'it' ? 'cad.' : 'ea.'}
+                {cardsPerParticipant} {t.printEachSuffix}
               </span>
             </div>
 
@@ -285,17 +269,16 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
                       : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
                   }`}
                 >
-                  {num} {num === 1 ? (lang === 'es' ? 'cartón' : lang === 'it' ? 'cartella' : 'card') : (lang === 'es' ? 'cartones' : lang === 'it' ? 'cartelle' : 'cards')}
+                  {num} {num === 1 ? t.printCardSingular : t.printCardPlural}
                 </button>
               ))}
             </div>
 
             <p className="text-[10px] text-slate-500 font-semibold leading-tight pt-0.5">
-              {lang === 'es'
-                ? `Total: ${totalCards} cartones (${participants.length} jugadores × ${cardsPerParticipant})`
-                : lang === 'it'
-                ? `Totale: ${totalCards} cartelle (${participants.length} giocatori × ${cardsPerParticipant})`
-                : `Total: ${totalCards} cards (${participants.length} players × ${cardsPerParticipant})`}
+              {t.printTotalCardsSummary
+                .replace('{0}', String(totalCards))
+                .replace('{1}', String(participants.length))
+                .replace('{2}', String(cardsPerParticipant))}
             </p>
           </div>
 
@@ -328,7 +311,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
               </button>
             </div>
             <p className="text-[10px] text-slate-500 font-semibold leading-tight pt-0.5">
-              {lang === 'es' ? `Genera ${pages.length} hojas en el PDF` : lang === 'it' ? `Genera ${pages.length} fogli nel PDF` : `Generates ${pages.length} sheets in PDF`}
+              {t.printSheetsSummary.replace('{0}', String(pages.length))}
             </p>
           </div>
 
@@ -361,17 +344,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
               </button>
             </div>
             <p className="text-[10px] text-slate-500 font-semibold leading-tight pt-0.5">
-              {inkMode === 'color'
-                ? lang === 'es'
-                  ? 'Bordes e insignias alegres'
-                  : lang === 'it'
-                  ? 'Bordi e colori vivaci'
-                  : 'Vibrant colors & badges'
-                : lang === 'es'
-                ? 'Escala de grises económica'
-                : lang === 'it'
-                ? 'Scala di grigi economica'
-                : 'Budget grayscale'}
+              {inkMode === 'color' ? t.printColorStyleDesc : t.printBwStyleDesc}
             </p>
           </div>
 
@@ -389,7 +362,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
               <span>{t.shuffleGridsBtn}</span>
             </button>
             <p className="text-[10px] text-slate-500 font-semibold leading-tight">
-              {lang === 'es' ? 'Genera nuevas combinaciones aleatorias' : lang === 'it' ? 'Genera nuove combinazioni casuali' : 'Generate new random layouts'}
+              {t.printShuffleGridsDesc}
             </p>
           </div>
         </div>
@@ -405,11 +378,10 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
             {/* Sheet Sub-header for preview */}
             <div className="print:hidden flex items-center justify-between text-xs font-bold text-slate-400 mb-4 pb-2 border-b border-slate-100">
               <span>
-                {lang === 'es'
-                  ? `Página ${pageIndex + 1} de ${pages.length} (${cardsPerPage} cartones por hoja)`
-                  : lang === 'it'
-                  ? `Pagina ${pageIndex + 1} di ${pages.length} (${cardsPerPage} cartelle per foglio)`
-                  : `Page ${pageIndex + 1} of ${pages.length} (${cardsPerPage} cards per sheet)`}
+                {t.printSheetPageInfo
+                  .replace('{0}', String(pageIndex + 1))
+                  .replace('{1}', String(pages.length))
+                  .replace('{2}', String(cardsPerPage))}
               </span>
               <span className="flex items-center gap-1 text-slate-500">
                 <Scissors className="w-3.5 h-3.5" /> {t.scissorsLineCut}
@@ -445,11 +417,7 @@ export const PrintableCards: React.FC<PrintableCardsProps> = ({
                             {card.playerName}
                           </div>
                           <div className="text-[10px] font-bold text-slate-500 mt-0.5">
-                            {lang === 'es'
-                              ? `Cartón #${card.cardIndex} • ¡Bingo Familiar!`
-                              : lang === 'it'
-                              ? `Cartella #${card.cardIndex} • Bingo di Famiglia!`
-                              : `Card #${card.cardIndex} • Family Bingo!`}
+                            {t.printCardNumberTitle.replace('{0}', String(card.cardIndex))}
                           </div>
                         </div>
                       </div>

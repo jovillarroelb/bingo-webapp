@@ -1,6 +1,7 @@
 import React from 'react';
-import { ExternalLink, Heart, Github, Scale } from 'lucide-react';
+import { ExternalLink, Heart, Github, Scale, Tag } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { APP_VERSION } from '../version';
 
 interface FooterProps {
   className?: string;
@@ -16,10 +17,20 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
       className={`print:hidden max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 border-t border-amber-200/70 text-slate-500 text-xs ${className}`}
     >
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-        {/* Left side: Copyright & MIT License */}
+        {/* Left side: Copyright, Version & MIT License */}
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1.5">
           <span className="font-bold text-slate-700">
             © {currentYear} {t.footerCopyright}
+          </span>
+          <span className="text-slate-300">•</span>
+          {/* Version badge */}
+          <span
+            id="footer-app-version"
+            className="inline-flex items-center gap-1 font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300 shadow-2xs"
+            title={`${t.versionLabel} ${APP_VERSION}`}
+          >
+            <Tag className="w-3 h-3 text-amber-700" />
+            <span>{APP_VERSION}</span>
           </span>
           <span className="text-slate-300">•</span>
           <span className="font-medium text-slate-500">
@@ -37,7 +48,7 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           {/* GitHub Repository link */}
           <a
             id="footer-github-link"
-            href="https://github.com"
+            href="https://github.com/jovillarroelb/bingo-webapp"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold hover:text-slate-950 transition-colors border border-slate-200"

@@ -132,16 +132,8 @@ export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
                       key={num}
                       title={`${letter}-${num}${nickname ? `: ${emoji} ${nickname}` : ''}${
                         isDrawn
-                          ? lang === 'es'
-                            ? ` (Extraída en orden #${drawnMap.get(num)})`
-                            : lang === 'it'
-                            ? ` (Estratta al #${drawnMap.get(num)})`
-                            : ` (Drawn #${drawnMap.get(num)})`
-                          : lang === 'es'
-                          ? ' (No extraída)'
-                          : lang === 'it'
-                          ? ' (Non ancora estratta)'
-                          : ' (Not drawn yet)'
+                          ? ` (${t.masterBoardOrderDrawn}${drawnMap.get(num)})`
+                          : ` (${t.masterBoardNotYetDrawn})`
                       }`}
                       className={`relative aspect-square rounded-xl flex flex-col items-center justify-center font-black text-xs sm:text-sm transition-all select-none ${
                         isDrawn

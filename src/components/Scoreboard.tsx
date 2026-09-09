@@ -48,13 +48,13 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   const formatDate = (timestamp: number) => {
     try {
       const d = new Date(timestamp);
-      return d.toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-GB', {
+      return d.toLocaleTimeString(lang === 'es' ? 'es-CL' : lang === 'it' ? 'it-IT' : 'en-GB', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
       });
     } catch {
-      return lang === 'es' ? 'Reciente' : 'Recent';
+      return t.scoreboardRecentTime;
     }
   };
 
@@ -84,11 +84,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         {records.length > 0 && (
           <button
             onClick={() => {
-              const confirmMsg =
-                lang === 'es'
-                  ? '¿Deseas reiniciar el marcador de esta sesión?'
-                  : 'Do you want to reset the scoreboard for this session?';
-              if (window.confirm(confirmMsg)) {
+              if (window.confirm(t.scoreboardClearConfirm)) {
                 playSound('pop', soundEnabled);
                 onClearHistory();
               }
@@ -186,7 +182,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           <div className="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border-2 border-amber-200 shadow-md space-y-4">
             <h3 className="text-lg font-black text-slate-900 font-['Fredoka'] flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-500" />
-              <span>{t.scoreboardPodiumTitle} ({leaderboard.length} {lang === 'es' ? 'jugadores' : 'players'})</span>
+              <span>{t.scoreboardPodiumTitle} ({leaderboard.length} {t.scoreboardPlayersCount})</span>
             </h3>
 
             <div className="space-y-2.5">
@@ -213,9 +209,9 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                           {player.name}
                         </div>
                         <div className="text-[11px] font-bold text-slate-500 flex gap-2 mt-0.5">
-                          <span>↔️ {player.winsByMode.line_row} {lang === 'es' ? 'Fila' : 'Row'}</span>
-                          <span>↕️ {player.winsByMode.line_col} {lang === 'es' ? 'Col' : 'Col'}</span>
-                          <span>🏆 {player.winsByMode.full_card} {lang === 'es' ? 'Todo' : 'Full'}</span>
+                          <span>↔️ {player.winsByMode.line_row} {t.scoreboardModeRowShort}</span>
+                          <span>↕️ {player.winsByMode.line_col} {t.scoreboardModeColShort}</span>
+                          <span>🏆 {player.winsByMode.full_card} {t.scoreboardModeFullShort}</span>
                         </div>
                       </div>
                     </div>
@@ -225,9 +221,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                         {player.totalWins}
                       </div>
                       <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                        {player.totalWins === 1
-                          ? (lang === 'es' ? 'Victoria' : 'Win')
-                          : (lang === 'es' ? 'Victorias' : 'Wins')}
+                        {player.totalWins === 1 ? t.scoreboardWinSingular : t.scoreboardWinPlural}
                       </div>
                     </div>
                   </div>
@@ -266,15 +260,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                         </div>
                         <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
                           {formatDate(rec.timestamp)} •{' '}
-                          {lang === 'es' ? (
-                            <>
-                              Completó en <strong className="text-slate-800">{rec.ballsDrawnCount} bolas</strong>
-                            </>
-                          ) : (
-                            <>
-                              Completed in <strong className="text-slate-800">{rec.ballsDrawnCount} balls</strong>
-                            </>
-                          )}
+                          {t.scoreboardCompletedInBalls} <strong className="text-slate-800">{rec.ballsDrawnCount} {t.scoreboardBallsWord}</strong>
                           {rec.winningPattern ? ` • ${rec.winningPattern}` : ''}
                         </div>
                       </div>
@@ -283,7 +269,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                     <button
                       onClick={() => onDeleteRecord(rec.id)}
                       className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                      title={lang === 'es' ? 'Eliminar este registro' : 'Delete record'}
+                      title={t.scoreboardDeleteRecordTooltip}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

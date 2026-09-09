@@ -232,16 +232,10 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
           <div className="w-full flex items-center justify-between mb-1">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-              {lang === 'es' ? 'Bombo 3D Three.js' : lang === 'it' ? 'Gabbia 3D Three.js' : '3D Three.js Cage'}
+              {t.wheelCageBadge}
             </span>
             <span className="text-xs font-bold text-slate-500">
-              {lang === 'es' ? (
-                <>Quedan <strong className="text-slate-900">{remainingCount}</strong> de 75 bolas</>
-              ) : lang === 'it' ? (
-                <>Rimangono <strong className="text-slate-900">{remainingCount}</strong> su 75 palline</>
-              ) : (
-                <><strong className="text-slate-900">{remainingCount}</strong> of 75 balls left</>
-              )}
+              {t.wheelRemainingBallsText.replace('{0}', String(remainingCount))}
             </span>
           </div>
 
@@ -322,19 +316,19 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                   }`}
                 >
                   {autoDraw ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  <span>{autoDraw ? 'Pausar automático' : 'Modo Automático'}</span>
+                  <span>{autoDraw ? t.autoModePause : t.autoModeStart}</span>
                 </button>
                 {autoDraw && (
                   <span className="text-emerald-700 font-extrabold flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 animate-spin" />
-                    Siguiente en {countdown}s
+                    {t.autoModeNextIn} {countdown}s
                   </span>
                 )}
               </div>
 
               {/* Speed selector */}
               <div className="flex items-center gap-1">
-                <span className="text-slate-500 text-[11px] font-semibold mr-1">Pausa entre bolas:</span>
+                <span className="text-slate-500 text-[11px] font-semibold mr-1">{t.autoModeSpeedLabel}</span>
                 {[5, 7, 10].map((sec) => (
                   <button
                     key={sec}
@@ -365,7 +359,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
             </div>
             {currentBall && (
               <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                {lang === 'es' ? `Bola #${drawnBalls.length}` : lang === 'it' ? `Pallina #${drawnBalls.length}` : `Ball #${drawnBalls.length}`}
+                {t.wheelBallNumberPrefix}{drawnBalls.length}
               </span>
             )}
           </div>
@@ -413,10 +407,10 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                     </span>
                     <div className="text-left">
                       <div className="text-base font-extrabold text-slate-900 font-['Fredoka'] leading-tight">
-                        {getNumberNickname(currentBall.number, lang).title || `${lang === 'es' ? 'Número' : lang === 'it' ? 'Numero' : 'Number'} ${currentBall.number}`}
+                        {getNumberNickname(currentBall.number, lang).title || `${t.wheelBallNumberPrefix}${currentBall.number}`}
                       </div>
                       <div className="text-[11px] font-bold text-amber-700">
-                        {lang === 'es' ? 'Columna' : lang === 'it' ? 'Colonna' : 'Column'} {currentBall.letter} • ({LETTER_RANGES[currentBall.letter].min} {lang === 'es' ? 'a' : lang === 'it' ? 'a' : 'to'}{' '}
+                        {t.wheelColumnPrefix} {currentBall.letter} • ({LETTER_RANGES[currentBall.letter].min} {t.wheelRangeTo}{' '}
                         {LETTER_RANGES[currentBall.letter].max})
                       </div>
                     </div>
@@ -427,23 +421,11 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
                   <div className="w-36 h-36 rounded-full border-4 border-dashed border-amber-300/80 bg-amber-50/50 flex flex-col items-center justify-center mb-3">
                     <span className="text-4xl animate-bounce">🎈</span>
                     <span className="text-xs font-bold text-amber-700 mt-1">
-                      {lang === 'es' ? '¡Listo para jugar!' : lang === 'it' ? '¡Pronto a giocare!' : 'Ready to play!'}
+                      {t.wheelReadyToPlay}
                     </span>
                   </div>
                   <p className="text-sm font-bold text-slate-600 max-w-xs">
-                    {lang === 'es' ? (
-                      <>
-                        Pulsa <strong className="text-emerald-600">"¡GIRAR Y SACAR BOLA!"</strong> o pulsa la tecla <strong className="text-slate-900">Espacio</strong> para comenzar la partida familiar.
-                      </>
-                    ) : lang === 'it' ? (
-                      <>
-                        Premi <strong className="text-emerald-600">"¡GIRA ED ESTRAI PALLINA!"</strong> o premi la barra <strong className="text-slate-900">Spazio</strong> per iniziare la partita.
-                      </>
-                    ) : (
-                      <>
-                        Click <strong className="text-emerald-600">"SPIN & DRAW BALL!"</strong> or press the <strong className="text-slate-900">Spacebar</strong> to start the game.
-                      </>
-                    )}
+                    {t.wheelStartHint}
                   </p>
                 </div>
               )}
@@ -454,7 +436,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
           <div className="border-t border-slate-100 pt-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500">
-                {lang === 'es' ? 'Últimas 5 bolitas:' : lang === 'it' ? 'Ultime 5 palline estratte:' : 'Last 5 balls drawn:'}
+                {t.wheelRecentBalls}
               </span>
               <span className="text-xs font-extrabold text-slate-700">
                 {t.wheelTotalDrawn}: <span className="text-rose-600 font-black">{drawnBalls.length}</span> / 75
@@ -464,7 +446,7 @@ export const BingoWheel: React.FC<BingoWheelProps> = ({
             <div className="flex items-center gap-2 overflow-x-auto pb-1 min-h-[46px]">
               {drawnBalls.length === 0 ? (
                 <span className="text-xs text-slate-400 italic">
-                  {lang === 'es' ? 'Aún no hay bolitas cantadas' : lang === 'it' ? 'Nessuna pallina ancora estratta' : 'No balls drawn yet'}
+                  {t.wheelNoBallsDrawn}
                 </span>
               ) : (
                 drawnBalls
