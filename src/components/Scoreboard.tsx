@@ -3,6 +3,8 @@ import { Trophy, Medal, Trash2, Calendar, Award, UserPlus, Sparkles, CheckCircle
 import { ScoreRecord, PlayerScoreSummary, GameMode } from '../types';
 import { GAME_MODE_LABELS, getLeaderboard } from '../utils/scoreboard';
 import { playSound } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
+import { getGameModeLabel } from '../i18n/translations';
 
 interface ScoreboardProps {
   records: ScoreRecord[];
@@ -21,6 +23,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   currentBallsCount,
   soundEnabled,
 }) => {
+  const { t, lang } = useLanguage();
   const [typedName, setTypedName] = useState('');
   const [selectedMode, setSelectedMode] = useState<GameMode>('full_card');
   const [showSuccessBadge, setShowSuccessBadge] = useState(false);
@@ -45,13 +48,13 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
   const formatDate = (timestamp: number) => {
     try {
       const d = new Date(timestamp);
-      return d.toLocaleTimeString('es-ES', {
+      return d.toLocaleTimeString(lang === 'es' ? 'es-CL' : 'en-GB', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
       });
     } catch {
-      return 'Reciente';
+      return lang === 'es' ? 'Reciente' : 'Recent';
     }
   };
 
@@ -66,14 +69,14 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-['Fredoka'] leading-tight">
-                Scoreboard de la Sesión Actual
+                {t.scoreboardTitle}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
-                Sesión Activa
+                {t.activeSessionBadge}
               </span>
             </div>
             <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-0.5">
-              Teclea el nombre de quien gane para registrar su victoria. Cada nueva sesión inicia fresca.
+              {t.scoreboardSubtitle}
             </p>
           </div>
         </div>
@@ -81,7 +84,11 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         {records.length > 0 && (
           <button
             onClick={() => {
-              if (window.confirm('¿Deseas reiniciar el marcador de esta sesión?')) {
+              const confirmMsg =
+                lang === 'es'
+                  ? '¿Deseas reiniciar el marcador de esta sesión?'
+                  : 'Do you want to reset the scoreboard for this session?';
+              if (window.confirm(confirmMsg)) {
                 playSound('pop', soundEnabled);
                 onClearHistory();
               }
@@ -89,7 +96,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
             className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto border border-rose-200"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Resetear Sesión ({records.length})</span>
+            <span>{t.scoreboardResetBtn} ({records.length})</span>
           </button>
         )}
       </div>
@@ -99,10 +106,10 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="text-sm font-black text-slate-900 font-['Fredoka'] flex items-center gap-1.5">
             <UserPlus className="w-4 h-4 text-amber-600" />
-            <span>Teclear Nombre del Ganador / Campeón:</span>
+            <span>{t.scoreboardManualTitle}:</span>
           </span>
           <span className="text-[11px] font-bold text-slate-500">
-            Escribe el nombre y pulsa "Registrar"
+            {t.scoreboardManualDesc}
           </span>
         </div>
 
@@ -114,30 +121,33 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               id="typed-winner-name-input"
               value={typedName}
               onChange={(e) => setTypedName(e.target.value)}
-              placeholder="Teclea el nombre aquí (ej: Lucas, Familia Gómez, Sofi...)"
+              placeholder={t.scoreboardManualPlaceholder}
               className="w-full px-4 py-3 rounded-2xl bg-white border-2 border-amber-300 font-bold text-slate-900 text-sm focus:outline-hidden focus:border-amber-500 focus:ring-2 focus:ring-amber-200 shadow-xs"
             />
           </div>
 
           {/* Mode Selector */}
           <div className="flex items-center gap-1 bg-white p-1 rounded-2xl border-2 border-amber-200">
-            {(['line_row', 'line_col', 'full_card'] as GameMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  setSelectedMode(mode);
-                  playSound('click', soundEnabled);
-                }}
-                className={`px-2.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  selectedMode === mode
-                    ? 'bg-amber-500 text-white shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {GAME_MODE_LABELS[mode].emoji} {GAME_MODE_LABELS[mode].short}
-              </button>
-            ))}
+            {(['line_row', 'line_col', 'full_card'] as GameMode[]).map((mode) => {
+              const label = getGameModeLabel(mode, lang);
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setSelectedMode(mode);
+                    playSound('click', soundEnabled);
+                  }}
+                  className={`px-2.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    selectedMode === mode
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {GAME_MODE_LABELS[mode].emoji} {label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Submit Button */}
@@ -147,14 +157,14 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
             className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-sm shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Registrar Victoria</span>
+            <span>{t.scoreboardManualSubmit}</span>
           </button>
         </form>
 
         {showSuccessBadge && (
           <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-black flex items-center gap-2 animate-fadeIn">
             <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0" />
-            <span>¡Victoria registrada con éxito en el Scoreboard de la sesión!</span>
+            <span>{t.scoreboardSuccessNotice}</span>
           </div>
         )}
       </div>
@@ -164,11 +174,10 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         <div className="bg-white rounded-3xl p-10 border-2 border-dashed border-amber-300 text-center space-y-3">
           <div className="text-5xl animate-bounce">🎈</div>
           <h3 className="text-lg font-black text-slate-800 font-['Fredoka']">
-            ¡Esta sesión aún no tiene campeones registrados!
+            {t.scoreboardEmptyTitle}
           </h3>
           <p className="text-xs sm:text-sm font-semibold text-slate-500 max-w-md mx-auto">
-            Puedes teclear el nombre del ganador en la casilla de arriba, o usar el botón grande{' '}
-            <strong className="text-rose-600 font-extrabold">"¡Cantar Bingo!"</strong> (o pulsar la tecla <strong>Enter</strong>) para verificar el cartón y registrarlo con fuegos artificiales.
+            {t.scoreboardEmptyDesc}
           </p>
         </div>
       ) : (
@@ -177,7 +186,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           <div className="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border-2 border-amber-200 shadow-md space-y-4">
             <h3 className="text-lg font-black text-slate-900 font-['Fredoka'] flex items-center gap-2">
               <Award className="w-5 h-5 text-amber-500" />
-              <span>Podio de la Sesión ({leaderboard.length} jugadores)</span>
+              <span>{t.scoreboardPodiumTitle} ({leaderboard.length} {lang === 'es' ? 'jugadores' : 'players'})</span>
             </h3>
 
             <div className="space-y-2.5">
@@ -204,9 +213,9 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                           {player.name}
                         </div>
                         <div className="text-[11px] font-bold text-slate-500 flex gap-2 mt-0.5">
-                          <span>↔️ {player.winsByMode.line_row} Fila</span>
-                          <span>↕️ {player.winsByMode.line_col} Col</span>
-                          <span>🏆 {player.winsByMode.full_card} Todo</span>
+                          <span>↔️ {player.winsByMode.line_row} {lang === 'es' ? 'Fila' : 'Row'}</span>
+                          <span>↕️ {player.winsByMode.line_col} {lang === 'es' ? 'Col' : 'Col'}</span>
+                          <span>🏆 {player.winsByMode.full_card} {lang === 'es' ? 'Todo' : 'Full'}</span>
                         </div>
                       </div>
                     </div>
@@ -216,7 +225,9 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                         {player.totalWins}
                       </div>
                       <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                        {player.totalWins === 1 ? 'Victoria' : 'Victorias'}
+                        {player.totalWins === 1
+                          ? (lang === 'es' ? 'Victoria' : 'Win')
+                          : (lang === 'es' ? 'Victorias' : 'Wins')}
                       </div>
                     </div>
                   </div>
@@ -229,12 +240,13 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border-2 border-amber-200 shadow-md space-y-4">
             <h3 className="text-lg font-black text-slate-900 font-['Fredoka'] flex items-center gap-2">
               <Calendar className="w-5 h-5 text-blue-500" />
-              <span>Victorias Anotadas en esta Sesión ({records.length})</span>
+              <span>{t.scoreboardRecentTitle} ({records.length})</span>
             </h3>
 
             <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
               {records.map((rec) => {
                 const modeInfo = GAME_MODE_LABELS[rec.mode];
+                const modeLabel = getGameModeLabel(rec.mode, lang);
 
                 return (
                   <div
@@ -249,12 +261,20 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                             {rec.playerName}
                           </span>
                           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                            {modeInfo.short}
+                            {modeLabel}
                           </span>
                         </div>
                         <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                          {formatDate(rec.timestamp)} • Completó en{' '}
-                          <strong className="text-slate-800">{rec.ballsDrawnCount} bolas</strong>
+                          {formatDate(rec.timestamp)} •{' '}
+                          {lang === 'es' ? (
+                            <>
+                              Completó en <strong className="text-slate-800">{rec.ballsDrawnCount} bolas</strong>
+                            </>
+                          ) : (
+                            <>
+                              Completed in <strong className="text-slate-800">{rec.ballsDrawnCount} balls</strong>
+                            </>
+                          )}
                           {rec.winningPattern ? ` • ${rec.winningPattern}` : ''}
                         </div>
                       </div>
@@ -263,7 +283,7 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
                     <button
                       onClick={() => onDeleteRecord(rec.id)}
                       className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                      title="Eliminar este registro"
+                      title={lang === 'es' ? 'Eliminar este registro' : 'Delete record'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

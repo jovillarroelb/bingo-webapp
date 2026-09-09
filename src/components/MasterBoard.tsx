@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Search, CheckCircle2, XCircle } from 'lucide-react';
 import { BingoLetter, DrawnBall } from '../types';
-import { LETTER_RANGES, NUMBER_NICKNAMES } from '../utils/bingoData';
+import { LETTER_RANGES, NUMBER_NICKNAMES, getNumberNickname } from '../utils/bingoData';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MasterBoardProps {
   drawnBalls: DrawnBall[];
 }
 
 export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
+  const { t, lang } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Map of drawn numbers with extraction index
@@ -27,10 +29,10 @@ export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <h3 className="text-xl font-bold text-slate-900 font-['Fredoka'] flex items-center gap-2">
-            <span>📋</span> Tablero Maestro de Control (1 a 75)
+            <span>📋</span> {t.masterBoardTitle}
           </h3>
           <p className="text-xs font-semibold text-slate-500">
-            Revisa de un vistazo todos los números que ya han salido del bombo
+            {t.masterBoardSubtitle}
           </p>
         </div>
 
@@ -42,7 +44,7 @@ export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
               type="number"
               min="1"
               max="75"
-              placeholder="¿Salió el número...?"
+              placeholder={t.masterBoardSearchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-amber-400 w-44"
@@ -60,12 +62,14 @@ export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
               {drawnMap.has(searchNum) ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>¡Ya salió! (Bola #{drawnMap.get(searchNum)})</span>
+                  <span>
+                    {t.masterBoardDrawnBadge} (#{drawnMap.get(searchNum)})
+                  </span>
                 </>
               ) : (
                 <>
                   <XCircle className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Aún en el bombo</span>
+                  <span>{t.masterBoardNotDrawnBadge}</span>
                 </>
               )}
             </div>
@@ -121,14 +125,23 @@ export const MasterBoard: React.FC<MasterBoardProps> = ({ drawnBalls }) => {
                 {numbers.map((num) => {
                   const isDrawn = drawnMap.has(num);
                   const isHighlighted = isSearchValid && searchNum === num;
-                  const nickname = NUMBER_NICKNAMES[num]?.title;
-                  const emoji = NUMBER_NICKNAMES[num]?.emoji;
+                  const { title: nickname, emoji } = getNumberNickname(num, lang);
 
                   return (
                     <div
                       key={num}
                       title={`${letter}-${num}${nickname ? `: ${emoji} ${nickname}` : ''}${
-                        isDrawn ? ` (Extraída en orden #${drawnMap.get(num)})` : ' (No extraída)'
+                        isDrawn
+                          ? lang === 'es'
+                            ? ` (Extraída en orden #${drawnMap.get(num)})`
+                            : lang === 'it'
+                            ? ` (Estratta al #${drawnMap.get(num)})`
+                            : ` (Drawn #${drawnMap.get(num)})`
+                          : lang === 'es'
+                          ? ' (No extraída)'
+                          : lang === 'it'
+                          ? ' (Non ancora estratta)'
+                          : ' (Not drawn yet)'
                       }`}
                       className={`relative aspect-square rounded-xl flex flex-col items-center justify-center font-black text-xs sm:text-sm transition-all select-none ${
                         isDrawn

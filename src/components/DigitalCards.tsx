@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { PlayerBingoCard, BingoLetter, DrawnBall, GameMode } from '../types';
 import { LETTER_RANGES, checkCardStatus } from '../utils/bingoData';
 import { playSound } from '../utils/audio';
-import { Trophy, Star, CheckCircle, AlertTriangle } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { AlertTriangle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DigitalCardsProps {
   cards: PlayerBingoCard[];
@@ -22,6 +22,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
   activeMode,
   onOpenVerifier,
 }) => {
+  const { t, lang } = useLanguage();
   const [selectedSticker, setSelectedSticker] = useState('⭐');
   const [markedMap, setMarkedMap] = useState<Record<string, Record<string, string>>>({});
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
@@ -35,7 +36,13 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
     // Check if the number has actually been drawn
     if (!drawnSet.has(cellVal)) {
       playSound('error', soundEnabled);
-      setWarningMessage(`¡El número ${cellVal} aún no sale del bombo!`);
+      const msg =
+        lang === 'es'
+          ? `¡El número ${cellVal} aún no sale del bombo!`
+          : lang === 'it'
+          ? `Il numero ${cellVal} non è ancora uscito dalla gabbia!`
+          : `Number ${cellVal} has not been drawn yet!`;
+      setWarningMessage(msg);
       setTimeout(() => setWarningMessage(null), 3000);
       return;
     }
@@ -59,16 +66,16 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
       <div className="bg-white rounded-3xl p-5 border-2 border-amber-200 shadow-md flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-black text-slate-900 font-['Fredoka'] flex items-center gap-2">
-            <span>📱</span> Modo Cartón Digital en Pantalla
+            <span>📱</span> {t.digitalTitle}
           </h3>
           <p className="text-xs font-semibold text-slate-500">
-            Toca los números para ponerles una estampita cuando salgan en la ruleta
+            {t.digitalSubtitle}
           </p>
         </div>
 
         {/* Sticker picker */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-600">Elige tu ficha:</span>
+          <span className="text-xs font-bold text-slate-600">{t.digitalChooseToken}:</span>
           <div className="flex items-center gap-1 bg-amber-50 p-1 rounded-2xl border border-amber-200">
             {STICKERS.map((stk) => (
               <button
@@ -127,7 +134,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
                       {card.playerName}
                     </div>
                     <div className="text-[11px] font-bold text-slate-400 mt-0.5">
-                      Cartón #{card.cardIndex}
+                      {lang === 'es' ? `Cartón #${card.cardIndex}` : lang === 'it' ? `Cartella #${card.cardIndex}` : `Card #${card.cardIndex}`}
                     </div>
                   </div>
                 </div>
@@ -140,14 +147,25 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
                   )}
                   {check.completedLines > 0 && !check.isBingo && (
                     <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500 text-white">
-                      {check.completedLines} {check.completedLines === 1 ? 'Línea' : 'Líneas'}
+                      {check.completedLines}{' '}
+                      {check.completedLines === 1
+                        ? lang === 'es'
+                          ? 'Línea'
+                          : lang === 'it'
+                          ? 'Riga'
+                          : 'Line'
+                        : lang === 'es'
+                        ? 'Líneas'
+                        : lang === 'it'
+                        ? 'Righe'
+                        : 'Lines'}
                     </span>
                   )}
                   <button
                     onClick={onOpenVerifier}
                     className="px-3 py-1 rounded-xl text-xs font-extrabold bg-amber-100 text-amber-900 hover:bg-amber-200 transition-colors cursor-pointer"
                   >
-                    Verificar
+                    {t.verifyWinnerBtn}
                   </button>
                 </div>
               </div>
@@ -194,7 +212,7 @@ export const DigitalCards: React.FC<DigitalCardsProps> = ({
                               <div className="flex flex-col items-center justify-center leading-none">
                                 <span className="text-xl">⭐</span>
                                 <span className="text-[8px] font-black uppercase text-amber-700">
-                                  GRATIS
+                                  {t.freeSpaceLabel}
                                 </span>
                               </div>
                             ) : (

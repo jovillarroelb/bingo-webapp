@@ -160,8 +160,15 @@ Si prefieres compilar localmente y subir la carpeta `dist/`:
 │       ├── bingoData.ts        # Algoritmo de generación de números B-I-N-G-O (1-75)
 │       ├── participants.ts     # Gestión de participantes y cartones
 │       └── scoreboard.ts       # Gestión de puntuaciones por sesión
+├── LICENSE                     # Licencia MIT
 └── README.md
 ```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
@@ -169,4 +176,3 @@ Si prefieres compilar localmente y subir la carpeta `dist/`:
 
 - Desarrollado con ❤️ por **[Smera](https://www.smera.cl)**.
 - Sitio web oficial: [https://www.smera.cl](https://www.smera.cl)
-- © Todos los derechos reservados.

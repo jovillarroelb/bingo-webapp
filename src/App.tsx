@@ -41,8 +41,11 @@ import { BingoClaimModal } from './components/BingoClaimModal';
 import { LandingPage } from './components/LandingPage';
 import { InstructionsModal } from './components/InstructionsModal';
 import { Footer } from './components/Footer';
+import { LanguageToggle } from './components/LanguageToggle';
+import { useLanguage } from './context/LanguageContext';
 
 export default function App() {
+  const { t } = useLanguage();
   // Session Active state: starts on attractive Landing Page inviting families & apoderados
   const [sessionActive, setSessionActive] = useState<boolean>(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState<boolean>(false);
@@ -186,7 +189,7 @@ export default function App() {
       {/* Top Navigation & App Header (Hidden when printing) */}
       <header className="print:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-amber-200/80 shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-          {/* Logo & Clean Title (No '(para 5 y 7 años)' in title) */}
+          {/* Logo & Clean Title */}
           <div className="flex items-center gap-2.5">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-md shadow-amber-500/20 text-2xl select-none">
               🦁
@@ -194,20 +197,23 @@ export default function App() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-['Fredoka'] leading-none">
-                  ¡Bingo Familiar!
+                  {t.appTitle}
                 </h1>
                 <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase tracking-wider">
-                  Sesión Activa
+                  {t.activeSessionBadge}
                 </span>
               </div>
               <p className="text-[11px] font-bold text-slate-500 mt-0.5">
-                Ruleta 3D, verificación de Bingo con fiesta y cartones en PDF
+                {t.appSubtitle}
               </p>
             </div>
           </div>
 
-          {/* Action buttons: Instructions, Big ¡Cantar Bingo! button, and Session exit */}
+          {/* Action buttons: Language Toggle, Instructions, Big ¡Cantar Bingo! button, and Session exit */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Language Toggle with Chile 🇨🇱 and UK 🇬🇧 Flags */}
+            <LanguageToggle soundEnabled={soundEnabled} />
+
             {/* Instructions Button */}
             <button
               id="header-instructions-btn"
@@ -218,7 +224,7 @@ export default function App() {
               className="px-3.5 py-2 rounded-2xl bg-white hover:bg-amber-50 text-slate-700 font-black text-xs shadow-xs border-2 border-amber-300 flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
             >
               <BookOpen className="w-4 h-4 text-amber-600" />
-              <span>Instrucciones</span>
+              <span>{t.instructionsBtn}</span>
             </button>
 
             {/* Prominent BIG "¡Cantar Bingo!" Button with Enter hint */}
@@ -229,12 +235,12 @@ export default function App() {
                 setIsClaimModalOpen(true);
               }}
               className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:to-pink-700 text-white font-black text-sm sm:text-base shadow-md shadow-rose-500/30 flex items-center gap-2 transition-transform transform hover:scale-105 active:scale-95 cursor-pointer border-b-2 border-rose-700 animate-pulse"
-              title="Cantar Bingo y verificar cartón (tecla Enter)"
+              title={t.claimBingoBtn}
             >
               <Trophy className="w-4 h-4 text-yellow-300 animate-bounce" />
-              <span>¡Cantar Bingo!</span>
+              <span>{t.claimBingoBtn}</span>
               <span className="hidden md:inline-block text-[10px] font-mono bg-black/25 px-1.5 py-0.5 rounded text-rose-100 font-black">
-                Enter ↵
+                {t.enterKeyHint}
               </span>
             </button>
 
@@ -243,7 +249,7 @@ export default function App() {
               id="header-exit-session-btn"
               onClick={() => setShowExitSessionConfirm(true)}
               className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-              title="Finalizar sesión y volver al inicio"
+              title={t.exitSessionBtn}
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -264,7 +270,7 @@ export default function App() {
               }`}
             >
               <Dices className="w-4 h-4" />
-              <span>Ruleta 3D y Bombo</span>
+              <span>{t.tabWheel}</span>
             </button>
 
             <button
@@ -280,7 +286,7 @@ export default function App() {
               }`}
             >
               <Award className="w-4 h-4" />
-              <span>Scoreboard ({records.length})</span>
+              <span>{t.tabScoreboard} ({records.length})</span>
             </button>
 
             <button
@@ -296,7 +302,7 @@ export default function App() {
               }`}
             >
               <Printer className="w-4 h-4" />
-              <span>🖨️ Imprimir Cartones</span>
+              <span>{t.tabPrint}</span>
             </button>
 
             <button
@@ -312,7 +318,7 @@ export default function App() {
               }`}
             >
               <Smartphone className="w-4 h-4" />
-              <span>Digital</span>
+              <span>{t.tabDigital}</span>
             </button>
           </nav>
         </div>
@@ -344,14 +350,14 @@ export default function App() {
                 <span className="text-2xl mt-0.5">💡</span>
                 <div>
                   <h4 className="font-black text-sm font-['Fredoka'] text-amber-900">
-                    Consejos para jugar en familia y con apoderados
+                    {t.tipsTitle}
                   </h4>
                   <p className="mt-0.5 text-amber-900/90 leading-relaxed font-semibold">
-                    1. Imprime los cartones en la pestaña <strong>"🖨️ Imprimir Cartones"</strong> con recorte para tijera y reparte por participante.
+                    1. {t.tipsTip1}
                     <br />
-                    2. Gira el bombo presionando la <strong>Barra Espaciadora</strong> y canta Bingo pulsando la tecla <strong>Enter</strong>.
+                    2. {t.tipsTip2}
                     <br />
-                    3. Al cantar Bingo, teclea el nombre del ganador para registrarlo en el podio del <strong>Scoreboard</strong> de la sesión.
+                    3. {t.tipsTip3}
                   </p>
                 </div>
               </div>
@@ -361,7 +367,7 @@ export default function App() {
                 className="flex-shrink-0 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
-                <span>Ir a Imprimir Cartones</span>
+                <span>{t.tipsGoToPrintBtn}</span>
               </button>
             </div>
           </div>
@@ -450,10 +456,10 @@ export default function App() {
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-amber-300 shadow-2xl text-center space-y-4">
             <div className="text-4xl">🔄</div>
             <h3 className="text-xl font-black text-slate-900 font-['Fredoka']">
-              ¿Reiniciar la partida?
+              {t.resetModalTitle}
             </h3>
             <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-              Se devolverán todas las bolitas extraídas al bombo 3D para empezar un nuevo juego desde cero.
+              {t.resetModalDesc}
             </p>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -461,13 +467,13 @@ export default function App() {
                 onClick={() => setShowResetConfirm(false)}
                 className="py-2.5 px-4 rounded-xl border border-slate-300 font-extrabold text-xs text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                Cancelar
+                {t.resetModalCancel}
               </button>
               <button
                 onClick={handleResetGame}
                 className="py-2.5 px-4 rounded-xl bg-rose-500 hover:bg-rose-600 font-extrabold text-xs text-white shadow-xs transition-colors cursor-pointer"
               >
-                Sí, reiniciar
+                {t.resetModalConfirm}
               </button>
             </div>
           </div>
@@ -480,10 +486,10 @@ export default function App() {
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full border-4 border-amber-300 shadow-2xl text-center space-y-4">
             <div className="text-4xl">🏠</div>
             <h3 className="text-xl font-black text-slate-900 font-['Fredoka']">
-              ¿Volver a la Pantalla Principal?
+              {t.exitModalTitle}
             </h3>
             <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-              Podrás iniciar una nueva sesión cuando quieras. Cada nueva sesión comienza con su propio marcador limpio.
+              {t.exitModalDesc}
             </p>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -491,13 +497,13 @@ export default function App() {
                 onClick={() => setShowExitSessionConfirm(false)}
                 className="py-2.5 px-4 rounded-xl border border-slate-300 font-extrabold text-xs text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                Seguir Jugando
+                {t.exitModalCancel}
               </button>
               <button
                 onClick={handleExitSession}
                 className="py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 font-extrabold text-xs text-white shadow-xs transition-colors cursor-pointer"
               >
-                Salir al Inicio
+                {t.exitModalConfirm}
               </button>
             </div>
           </div>

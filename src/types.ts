@@ -36,6 +36,8 @@ export interface ScoreRecord {
   winningPattern?: string;
 }
 
+export type Language = 'es' | 'en' | 'it';
+
 export interface PlayerScoreSummary {
   name: string;
   totalWins: number;

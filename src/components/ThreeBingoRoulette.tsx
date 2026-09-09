@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { BingoLetter, DrawnBall } from '../types';
-import { LETTER_RANGES } from '../utils/bingoData';
+import { playSound } from '../utils/audio';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ThreeBingoRouletteProps {
   isSpinning: boolean;
-  currentBall: DrawnBall | null;
-  onCageClick: () => void;
+  currentBall?: DrawnBall | null;
   remainingCount: number;
+  soundEnabled?: boolean;
 }
 
 interface Ball3D {
@@ -20,33 +21,30 @@ interface Ball3D {
   number: number;
 }
 
+// Default camera view matching the provided photo
+const DEFAULT_ROT_Y = -0.65; // ~ -37 degrees (brings right pillar forward, chute to left-bottom)
+const DEFAULT_ROT_X = 0.22;  // ~ 12.5 degrees tilt down
+
 export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
   isSpinning,
-  currentBall,
-  onCageClick,
-  remainingCount,
+  soundEnabled = true,
 }) => {
+  const { lang } = useLanguage();
   const mountRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const cageGroupRef = useRef<THREE.Group | null>(null);
-  const poppingBallRef = useRef<THREE.Mesh | null>(null);
-  const poppingBallCanvasRef = useRef<{ canvas: HTMLCanvasElement; texture: THREE.CanvasTexture } | null>(null);
   const ballsInsideRef = useRef<Ball3D[]>([]);
   const animFrameIdRef = useRef<number | null>(null);
 
   const [isPointerDown, setIsPointerDown] = useState(false);
-  const pointerStartRef = useRef({ x: 0, y: 0, rotY: 0, rotX: 0 });
+  const pointerStartRef = useRef({ x: 0, y: 0, rotY: DEFAULT_ROT_Y, rotX: DEFAULT_ROT_X });
+  const hasDraggedRef = useRef<boolean>(false);
+  const [hasCustomRotation, setHasCustomRotation] = useState<boolean>(false);
 
-  // Spin velocity state for 3D cage
+  // Spin velocity state for 3D cage (continuous rotation)
   const spinVelocityRef = useRef(0.012);
-
-  // Popping animation state
-  const poppingAnimRef = useRef({
-    active: false,
-    progress: 0,
-  });
 
   // Setup Three.js Scene
   useEffect(() => {
@@ -54,15 +52,18 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
     if (!container) return;
 
     const width = container.clientWidth || 320;
-    const height = 280;
+    const height = 270;
 
     // 1. Scene
     const scene = new THREE.Scene();
+    scene.rotation.y = DEFAULT_ROT_Y;
+    scene.rotation.x = DEFAULT_ROT_X;
     sceneRef.current = scene;
 
-    // 2. Camera
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
-    camera.position.set(0, 1.2, 8.8);
+    // 2. Camera - Fixed distance (NO zoom in or zoom out)
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+    camera.position.set(0, 1.1, 8.4);
+    camera.lookAt(0, 0.4, 0);
     cameraRef.current = camera;
 
     // 3. Renderer
@@ -76,7 +77,7 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
     rendererRef.current = renderer;
 
     // 4. Lights
-    const ambient = new THREE.AmbientLight(0xffffff, 1.1);
+    const ambient = new THREE.AmbientLight(0xffffff, 1.15);
     scene.add(ambient);
 
     const dirLight = new THREE.DirectionalLight(0xfff8ed, 1.4);
@@ -131,14 +132,14 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
       pole.castShadow = true;
       standGroup.add(pole);
 
-      // Support cap
+      // Support cap with golden sphere
       const capGeo = new THREE.SphereGeometry(0.24, 16, 16);
       const cap = new THREE.Mesh(capGeo, goldMaterial);
       cap.position.set(x, 0.9, 0);
       standGroup.add(cap);
     });
 
-    // Chute (ramp where balls exit at the front)
+    // Chute (ramp where balls exit at the front-left)
     const chuteGeo = new THREE.CylinderGeometry(0.45, 0.6, 1.2, 18, 1, true, 0, Math.PI);
     const chuteMat = new THREE.MeshStandardMaterial({
       color: 0xe2e8f0,
@@ -212,7 +213,7 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
       });
       const bMesh = new THREE.Mesh(ballGeo, ballMat);
 
-      // Random position inside cage
+      // Position inside cage
       const phi = Math.random() * Math.PI * 2;
       const theta = Math.random() * Math.PI;
       const r = 0.3 + Math.random() * (cageRadius - ballRadius - 0.25);
@@ -239,34 +240,15 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
 
     scene.add(cageGroup);
 
-    // 9. Popping Ball that flies out towards the user when a number is drawn
-    const popCanvas = document.createElement('canvas');
-    popCanvas.width = 256;
-    popCanvas.height = 256;
-    const popTexture = new THREE.CanvasTexture(popCanvas);
-    poppingBallCanvasRef.current = { canvas: popCanvas, texture: popTexture };
-
-    const popMat = new THREE.MeshStandardMaterial({
-      map: popTexture,
-      roughness: 0.2,
-      metalness: 0.2,
-    });
-    const popGeo = new THREE.SphereGeometry(0.72, 32, 32);
-    const popMesh = new THREE.Mesh(popGeo, popMat);
-    popMesh.position.set(0, 0.4, 2.5);
-    popMesh.visible = false;
-    scene.add(popMesh);
-    poppingBallRef.current = popMesh;
-
-    // 10. Animation Loop
+    // 9. Animation Loop - Continuous rotation, spins faster when accelerated
     const animate = (time: number) => {
       animFrameIdRef.current = requestAnimationFrame(animate);
 
-      // Rotate cage
+      // Rotate cage continually
       if (cageGroupRef.current) {
         cageGroupRef.current.rotation.x += spinVelocityRef.current;
 
-        // Damping if fast spin
+        // Smooth damping back to steady continuous spin speed
         if (spinVelocityRef.current > 0.015) {
           spinVelocityRef.current *= 0.982;
         } else {
@@ -274,51 +256,32 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
         }
       }
 
-      // Animate inner balls (tumbling effect)
+      // Animate inner balls (tumbling effect inside cage)
       const t = time * 0.0025;
       ballsInsideRef.current.forEach((b) => {
         if (spinVelocityRef.current > 0.05) {
-          // Centrifugal whirl
+          // Centrifugal whirl when spinning fast
           b.mesh.rotation.x += 0.08;
           b.mesh.rotation.y += 0.05;
           b.mesh.position.y = b.origPos.y + Math.sin(t * b.rndSpeed + b.rndOffset) * 0.55;
           b.mesh.position.x = b.origPos.x + Math.cos(t * b.rndSpeed) * 0.35;
         } else {
-          // Gentle floating
+          // Gentle tumbling floating
           b.mesh.rotation.x += 0.01;
           b.mesh.position.y = b.origPos.y + Math.sin(t * 1.5 + b.rndOffset) * 0.15;
         }
       });
 
-      // Popping ball animation towards camera
-      if (poppingAnimRef.current.active && poppingBallRef.current) {
-        poppingAnimRef.current.progress += 0.035;
-        const p = poppingAnimRef.current.progress;
-
-        // Parabolic arc forward towards user
-        poppingBallRef.current.position.z = 2.0 + Math.sin(p * Math.PI * 0.5) * 4.2;
-        poppingBallRef.current.position.y = 0.9 - Math.sin(p * Math.PI) * 0.8;
-        poppingBallRef.current.rotation.y += 0.06;
-        poppingBallRef.current.rotation.x += 0.03;
-
-        const sc = Math.min(1.0, 0.2 + p * 0.8);
-        poppingBallRef.current.scale.set(sc, sc, sc);
-
-        if (p >= 1) {
-          poppingAnimRef.current.active = false;
-          // Settle down
-          setTimeout(() => {
-            if (poppingBallRef.current) {
-              poppingBallRef.current.visible = false;
-            }
-          }, 800);
-        }
-      }
-
       renderer.render(scene, camera);
     };
 
     animate(0);
+
+    // Prevent wheel zoom explicitly (no zoom in or zoom out, only rotation allowed)
+    const preventWheel = (e: WheelEvent) => {
+      e.preventDefault();
+    };
+    container.addEventListener('wheel', preventWheel, { passive: false });
 
     // Responsive resize
     const handleResize = () => {
@@ -332,104 +295,114 @@ export const ThreeBingoRoulette: React.FC<ThreeBingoRouletteProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      container.removeEventListener('wheel', preventWheel);
       window.removeEventListener('resize', handleResize);
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
       if (rendererRef.current) rendererRef.current.dispose();
     };
   }, []);
 
-  // Update popping ball texture and trigger 3D jump when ball is drawn
+  // When parent triggers drawing a ball (via Spacebar or button), accelerate cage spin
   useEffect(() => {
     if (isSpinning) {
-      spinVelocityRef.current = 0.32; // Fast spin!
+      spinVelocityRef.current = 0.32; // Fast spin
     }
   }, [isSpinning]);
 
-  useEffect(() => {
-    if (!currentBall || !poppingBallRef.current || !poppingBallCanvasRef.current) return;
-
-    const { canvas, texture } = poppingBallCanvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const range = LETTER_RANGES[currentBall.letter];
-
-    // Draw high-res textured ball for 3D sphere
-    ctx.clearRect(0, 0, 256, 256);
-
-    const grad = ctx.createRadialGradient(90, 80, 20, 128, 128, 120);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.35, range.color);
-    grad.addColorStop(1, '#0f172a');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
-
-    // White circle for number
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(128, 128, 70, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Letter and Number
-    ctx.fillStyle = range.color;
-    ctx.font = 'bold 36px Fredoka, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(currentBall.letter, 128, 95);
-
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 54px Fredoka, sans-serif';
-    ctx.fillText(String(currentBall.number), 128, 145);
-
-    texture.needsUpdate = true;
-
-    // Trigger pop animation
-    poppingBallRef.current.visible = true;
-    poppingBallRef.current.position.set(0, 0.4, 2.0);
-    poppingBallRef.current.scale.set(0.2, 0.2, 0.2);
-    poppingAnimRef.current = { active: true, progress: 0 };
-  }, [currentBall]);
-
-  // Touch/Mouse drag to view cage from angles
+  // Touch/Mouse drag to explore the 3D object from angles (Rotation ONLY, NO zoom)
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsPointerDown(true);
+    hasDraggedRef.current = false;
     pointerStartRef.current = {
       x: e.clientX,
       y: e.clientY,
-      rotY: sceneRef.current?.rotation.y || 0,
-      rotX: sceneRef.current?.rotation.x || 0,
+      rotY: sceneRef.current?.rotation.y ?? DEFAULT_ROT_Y,
+      rotX: sceneRef.current?.rotation.x ?? DEFAULT_ROT_X,
     };
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isPointerDown || !sceneRef.current) return;
-    const deltaX = (e.clientX - pointerStartRef.current.x) * 0.005;
-    const deltaY = (e.clientY - pointerStartRef.current.y) * 0.005;
+    const deltaX = (e.clientX - pointerStartRef.current.x) * 0.007;
+    const deltaY = (e.clientY - pointerStartRef.current.y) * 0.007;
+
+    if (Math.hypot(e.clientX - pointerStartRef.current.x, e.clientY - pointerStartRef.current.y) > 4) {
+      hasDraggedRef.current = true;
+      setHasCustomRotation(true);
+    }
+
+    // Only rotation: horizontal 360 rotation and bounded vertical tilt
     sceneRef.current.rotation.y = pointerStartRef.current.rotY + deltaX;
-    sceneRef.current.rotation.x = Math.max(-0.3, Math.min(0.3, pointerStartRef.current.rotX + deltaY));
+    sceneRef.current.rotation.x = Math.max(-0.45, Math.min(0.55, pointerStartRef.current.rotX + deltaY));
   };
 
   const handlePointerUp = () => {
     setIsPointerDown(false);
+
+    // If pointer didn't drag, it was a pure click on the 3D cage!
+    // Spinning faster without drawing a ball (no ejection, no ball draw trigger)
+    if (!hasDraggedRef.current) {
+      spinVelocityRef.current = Math.min(0.42, spinVelocityRef.current + 0.18);
+      playSound('spin', soundEnabled);
+    }
   };
+
+  // Reset view to default angle from reference photo
+  const handleResetAngle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!sceneRef.current) return;
+    sceneRef.current.rotation.y = DEFAULT_ROT_Y;
+    sceneRef.current.rotation.x = DEFAULT_ROT_X;
+    setHasCustomRotation(false);
+    playSound('click', soundEnabled);
+  };
+
+  const dragTitle =
+    lang === 'es'
+      ? 'Arrastra para rotar la vista 3D • Clic para girar más rápido'
+      : lang === 'it'
+      ? 'Trascina per ruotare la vista 3D • Clicca per girare più veloce'
+      : 'Drag to rotate 3D view • Click to spin faster';
+
+  const hintPill =
+    lang === 'es'
+      ? 'Arrastra para rotar • Clic para acelerar'
+      : lang === 'it'
+      ? 'Trascina per ruotare • Clicca per accelerare'
+      : 'Drag to rotate • Click to spin faster';
+
+  const resetAngleLabel =
+    lang === 'es' ? 'Ángulo inicial' : lang === 'it' ? 'Angolo iniziale' : 'Default angle';
 
   return (
     <div className="relative w-full flex flex-col items-center justify-center select-none">
-      {/* 3D Canvas container */}
+      {/* 3D Canvas container with cursor indicators */}
       <div
         ref={mountRef}
         className="w-full h-[270px] cursor-grab active:cursor-grabbing rounded-2xl overflow-hidden touch-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onClick={onCageClick}
-        title="Toca o arrastra para ver en 3D"
+        title={dragTitle}
       />
 
-      {/* 3D badge hint */}
-      <div className="absolute bottom-2 left-3 flex items-center gap-1 text-[11px] font-extrabold text-amber-900 bg-amber-100/90 px-2.5 py-0.5 rounded-full backdrop-blur-xs border border-amber-300">
-        <span>✨</span> Bombo 3D interactivo con Three.js
+      {/* Helper pill: Shows interaction hints (drag to rotate, click to spin faster) */}
+      <div className="absolute bottom-2 left-3 flex items-center gap-1.5 text-[11px] font-extrabold text-amber-900 bg-amber-100/90 px-2.5 py-0.5 rounded-full backdrop-blur-xs border border-amber-300">
+        <span>🔄</span>
+        <span>{hintPill}</span>
       </div>
+
+      {/* Button to restore default angle if rotated */}
+      {hasCustomRotation && (
+        <button
+          onClick={handleResetAngle}
+          className="absolute top-2 right-3 text-[10px] font-extrabold text-slate-700 bg-white/90 hover:bg-white px-2 py-1 rounded-lg shadow-xs border border-slate-300 flex items-center gap-1 transition-all cursor-pointer"
+          title={resetAngleLabel}
+        >
+          <span>↺</span>
+          <span>{resetAngleLabel}</span>
+        </button>
+      )}
     </div>
   );
 };
